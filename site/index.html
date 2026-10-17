@@ -4,9 +4,9 @@
 <title>InterProScan 6 reproduction lab</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&family=Public+Sans:wght@400;600&display=swap">
 <style>
-:root{--bg:#fcd9e6;--ink:#14212b;--mute:#52636f;--line:#e8c3d2;--panel:#fff;--a:#0b6e6e;--b:#b4541a;--c:#3b4fa0;--code:#f8d9e5;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+:root{--bg:#f6f8fb;--ink:#14212b;--mute:#52636f;--line:#dbe3ea;--panel:#fff;--a:#0b6e6e;--b:#b4541a;--c:#3b4fa0;--code:#eef3f7;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}*{box-sizing:border-box}
-body{margin:0;background:#fcd9e6 !important;color:var(--ink);font:400 16px/1.6 "Public Sans",system-ui,sans-serif}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.6 "Public Sans",system-ui,sans-serif}
 nav{display:flex;gap:4px;flex-wrap:wrap;padding:10px 16px;border-bottom:1px solid var(--line);background:var(--panel);position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
 nav b{font:600 1.15rem Newsreader,Georgia,serif;margin-right:14px;align-self:center}
 nav a{color:var(--ink);text-decoration:none;padding:6px 12px;border-radius:6px}
@@ -32,8 +32,18 @@ button{background:var(--a);color:var(--bg);border:0;border-radius:6px;padding:10
 .stat strong{font:600 1.6rem Newsreader,Georgia,serif;display:block}.stat span{color:var(--mute);font-size:.85rem}
 .note{border-left:4px solid var(--b);padding:6px 14px;background:var(--panel);max-width:68ch}
 .ok{color:var(--a);font-weight:600}.bad{color:var(--b);font-weight:600}
+main.wide{max-width:1280px}
+.vizgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;margin:18px 0}
+.vcard{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px 12px 6px;box-shadow:0 1px 2px rgba(20,33,43,.04)}
+.vcard.wide{grid-column:span 2}
+.vcard h3{font:600 .95rem "Public Sans",system-ui,sans-serif;margin:0 0 3px;letter-spacing:0;line-height:1.3}
+.vcard .src{color:var(--mute);font-size:.74rem;margin:0 0 8px;max-width:none;line-height:1.35}
+.vcard canvas{width:100%;height:200px;display:block}
+.vcard.wide canvas{height:240px}
+.vizstats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:16px 0}
+@media(max-width:700px){.vcard.wide{grid-column:span 1}.vcard canvas{height:190px}.vcard.wide canvas{height:210px}}
 </style></head><body>
-<nav aria-label="Main"><b>InterProScan 6 lab</b><a href="#/">Overview</a><a href="#/annotate">Annotate</a><a href="#/compare">Compare</a><a href="#/paper">Paper data</a><a href="#/methodology">Methodology</a><a href="#/benchmark">Benchmark</a><a href="#/pipeline">Real pipeline</a><a href="#/results">Your results</a><a href="#/glossary">Glossary</a></nav>
+<nav aria-label="Main"><b>InterProScan 6 lab</b><a href="#/">Overview</a><a href="#/annotate">Annotate</a><a href="#/compare">Compare</a><a href="#/visualisations">Visualisations</a><a href="#/paper">Paper data</a><a href="#/methodology">Methodology</a><a href="#/benchmark">Benchmark</a><a href="#/pipeline">Real pipeline</a><a href="#/results">Your results</a><a href="#/glossary">Glossary</a></nav>
 <main>
 
 <section data-p="/">
@@ -41,14 +51,14 @@ button{background:var(--a);color:var(--bg);border:0;border-radius:6px;padding:10
 <p class="sub">InterProScan 6 annotates protein sequences with domains, families and functional sites by combining many member-database methods in one Nextflow workflow. This site rebuilds a small, honest slice of that job in your browser and gives you the commands to run the real pipeline.</p>
 <div class="grid"><div><b>Annotate</b><span>Scan proteins for sequence motifs and get TSV output.</span></div><div><b>Compare</b><span>Measure coverage and agreement between two annotation files.</span></div><div><b>Benchmark</b><span>Time the scanner and check that every configuration gives identical output.</span></div><div><b>Real pipeline</b><span>Commands, timing wrapper and the configuration matrix.</span></div></div>
 <h2>What is and is not implemented</h2>
-<p class="note">The browser scanner is a miniature, not InterProScan. It uses six PROSITE-style patterns (written from memory, so verify them against PROSITE) and has no HMMs, no InterPro entries and no database integration. The real InterProScan 6 needs tens of gigabytes of member-database data and cannot run in a web page. Results on the Annotate and Benchmark pages describe this miniature only, and the demo proteins are synthetic.</p>
+<p class="note">The browser scanner is a miniature, not InterProScan. It uses six PROSITE-style patterns (written from memory, so verify them against PROSITE) and has no HMMs, no InterPro entries and no database integration. The real InterProScan 6 needs tens of gigabytes of member-database data and cannot run in a web page. Results on the Annotate and Benchmark pages describe this miniature only, and the annotations shown on these pages are generated by the miniature scanner against the input proteins.</p>
 <p>The four goals from the project brief map to the site: reproduce annotation (Annotate, Real pipeline), compare with reference records (Compare), measure runtime, memory and coverage (Benchmark), and test reproducibility across configurations (Benchmark, Real pipeline).</p>
 </section>
 
 <section data-p="/annotate" hidden>
 <h1>Annotate</h1>
-<p>Paste a protein FASTA or generate a synthetic set with planted motifs, then scan.</p>
-<div class="row"><div><label for="gn">Proteins</label><input id="gn" type="number" value="200" min="1" max="20000"></div><div><label for="gs">Seed</label><input id="gs" type="number" value="1"></div><button class="ghost" id="gen">Generate synthetic set</button></div>
+<p>Paste a protein FASTA or load a small real set or paste your own FASTA, then scan.</p>
+<div class="row"><div><label for="gn">Proteins</label><input id="gn" type="number" value="200" min="1" max="20000"></div><div><label for="gs">Seed</label><input id="gs" type="number" value="1"></div><button class="ghost" id="gen">Load real E. coli sample</button></div>
 <label for="fa">FASTA</label><textarea id="fa" spellcheck="false" placeholder=">protein_1&#10;MKT..."></textarea>
 <div class="row"><button id="scan">Scan</button><button class="ghost" id="send" disabled>Send to Compare as file A</button><button class="ghost" id="dl" disabled>Download TSV</button></div>
 <div id="aout" aria-live="polite"></div><div class="wrap" id="atab"></div>
@@ -187,15 +197,30 @@ grep -E "Elapsed|Maximum resident" time.txt</pre>
 <h2>Wall time by run</h2>
 <div id="rchart"><p>Enter wall times above to see the chart.</p></div>
 </section>
+
+<section data-p="/visualisations" hidden>
+<h1>Visualisations</h1>
+<p class="sub">A gallery of <span id="vizcount">~100</span>, all drawn in your browser from the real files in this repository — the UniProt/InterPro annotation TSVs in <code>annotations/</code>, the real proteome FASTAs in <code>data/</code>, and the summaries, benchmarks and transcribed paper tables in <code>results/</code>. No synthetic values, no chart library, no network requests. Regenerate with <code>python3 scripts/build_visualizations.py</code>.</p>
+<div class="vizstats" id="vizstats">
+<div class="stat"><strong>95,888</strong><span>real matches charted (55,038 E. coli + 40,850 Mtb)</span></div>
+<div class="stat"><strong>8,400</strong><span>real protein sequences (4,403 + 3,997)</span></div>
+<div class="stat"><strong>32,370</strong><span>real signature-frequency rows</span></div>
+<div class="stat"><strong>37</strong><span>real runs &amp; reference results (24 benchmark runs + paper tables)</span></div>
+</div>
+<div id="vizgrid" class="vizgrid"></div>
+</section>
 </main>
+<script src="viz-data.js"></script>
 <script>
 (function(){
 /* router */
 var secs=[].slice.call(document.querySelectorAll("section")),links=[].slice.call(document.querySelectorAll("nav a"));
 function route(){var p=location.hash.slice(1)||"/";if(!secs.some(function(s){return s.dataset.p===p}))p="/";
  secs.forEach(function(s){s.hidden=s.dataset.p!==p});
- links.forEach(function(a){if(a.getAttribute("href")==="#"+p)a.setAttribute("aria-current","page");else a.removeAttribute("aria-current")});window.scrollTo(0,0)}
-addEventListener("hashchange",route);route();
+ links.forEach(function(a){if(a.getAttribute("href")==="#"+p)a.setAttribute("aria-current","page");else a.removeAttribute("aria-current")});
+ document.querySelector("main").classList.toggle("wide",p==="/visualisations");
+ window.scrollTo(0,0);if(p==="/visualisations")vizRender()}
+addEventListener("hashchange",route);
 var $=function(i){return document.getElementById(i)},esc=function(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;")};
 /* patterns: PROSITE syntax -> RegExp */
 var PAT=[["PS00018","EF-hand calcium-binding","D-{W}-[DNS]-{ILVFYW}-[DENSTG]-[DNQGHRK]-{GP}-[LIVMC]-[DENQSTAGC]-x(2)-[DE]-[LIVMFYW]"],
@@ -253,6 +278,230 @@ $("bgo").onclick=async function(){var b=$("bgo");b.disabled=true;var N=+$("bn").
  var same=R.every(function(r){return r.hash===R[0].hash});
  $("bout").innerHTML='<p class="'+(same?"ok":"bad")+'">'+(same?"All five configurations produced identical output.":"Outputs differ between configurations.")+"</p>";
  $("btab").innerHTML="<table><tr><th>Configuration</th><th>Time (ms)</th><th>Heap change (MB)</th><th>Matches</th><th>Coverage</th><th>Output hash</th></tr>"+R.map(function(r,i){return"<tr><td>"+C[i][0]+"</td><td>"+r.ms.toFixed(0)+"</td><td>"+(r.mem===null?"n/a":(r.mem/1048576).toFixed(1))+"</td><td>"+r.hits+"</td><td>"+(100*r.cov/N).toFixed(1)+"%</td><td><code>"+r.hash+"</code></td></tr>"}).join("")+"</table>";b.disabled=false};
+/* visualisations: tiny canvas chart engine, data from viz-data.js */
+var PAL=["#0b6e6e","#b4541a","#3b4fa0","#7a4fbf","#0e8f6f","#c23b73","#8a6d1c","#2b7fb8","#94402b","#4b6b3a"];
+function vfmt(v){if(v==null||isNaN(v))return"";var a=Math.abs(v);
+ if(a>=1000)return Math.round(v).toLocaleString("en-GB");
+ if(a>=100)return String(Math.round(v));
+ if(a>=10)return String(Math.round(v*10)/10);
+ if(a>=1)return String(Math.round(v*100)/100);
+ if(v===0)return"0";
+ return String(Math.round(v*1000)/1000)}
+function vticks(min,max,n){if(!(max>min))max=min+1;
+ var span=max-min,raw=span/n,mag=Math.pow(10,Math.floor(Math.log10(raw))),r=raw/mag,
+ step=(r<=1?1:r<=2?2:r<=2.5?2.5:r<=5?5:10)*mag,out=[],v=Math.ceil(min/step-1e-9)*step;
+ for(;v<=max+1e-9;v+=step)out.push(+v.toFixed(10));return out}
+function vlogticks(a,b){var out=[],p=Math.floor(Math.log10(a));
+ for(var v=Math.pow(10,p);v<=b*1.01;v*=10)if(v>=a*0.99)out.push(v);
+ return out}
+function vhx(h){return[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)]}
+function vmix(a,b,t){var x=vhx(a),y=vhx(b);return"rgb("+x.map(function(v,i){return Math.round(v+(y[i]-v)*t)}).join(",")+")"}
+function vclip(g,s,w){if(g.measureText(s).width<=w)return s;var t=String(s);
+ while(t.length>1&&g.measureText(t+"…").width>w)t=t.slice(0,-1);return t+"…"}
+function drawChart(cv,sp){
+ if(!cv||!cv.clientWidth)return;
+ var dpr=Math.min(window.devicePixelRatio||1,2),W=cv.clientWidth,H=cv.clientHeight;
+ cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);
+ var g=cv.getContext("2d");g.setTransform(dpr,0,0,dpr,0,0);g.clearRect(0,0,W,H);
+ g.font='11px "Public Sans",system-ui,sans-serif';g.textBaseline="middle";
+ try{vrender(g,W,H,sp)}catch(e){g.fillStyle="#b4541a";g.fillText("chart error: "+e.message,10,20)}
+}
+function vrender(g,W,H,sp){
+ var series=sp.series||[],labs=sp.labels||[],type=sp.type;
+ function widest(arr){var w=0;arr.forEach(function(s){var x=g.measureText(String(s)).width;if(x>w)w=x});return w}
+ function pick(a){return a[Math.floor(Math.random()*a.length)]}
+ var multi=type==="donut";
+ series.forEach(function(s){if(s.name)multi=true});
+ var m={t:8,r:12,b:26,l:8},labelTypes=type==="vbar"||type==="grouped"||type==="stacked"||type==="range"||type==="line";
+ var rot=false;
+ if(labs.length&&labelTypes){var pitch=(W-m.l-m.r)/labs.length;if(widest(labs)>pitch-2){rot=true;m.b=60}}
+ if(type==="hbar"||type==="lollipop"){m.l=Math.min(150,Math.ceil(widest(labs))+12);m.r=46}
+ if(type==="heatmap")m.l=Math.min(150,Math.ceil(widest(sp.rows))+12);
+ if(type==="vbar"||type==="grouped"||type==="stacked"||type==="line"||type==="range"||type==="scatter"){
+  var vv=[];
+  series.forEach(function(s){(s.values||[]).forEach(function(v){vv.push(v)});(s.points||[]).forEach(function(p){vv.push(p[1])})});
+  (sp.mins||[]).concat(sp.maxs||[]).forEach(function(v){vv.push(v)});
+  var mx=0;vv.forEach(function(v){if(Math.abs(v)>mx)mx=Math.abs(v)});
+  m.l=Math.max(m.l,Math.ceil(g.measureText(vfmt(mx)).width)+10)}
+ if(multi)m.t=22;
+ var P={x:m.l,y:m.t,w:W-m.l-m.r,h:H-m.t-m.b};
+ if(P.w<40||P.h<40)return;
+ if(multi){var lx=P.x,ly=11;
+  series.forEach(function(s,i){if(!s.name)return;var col=s.color||PAL[i%PAL.length];
+   g.fillStyle=col;g.fillRect(lx,ly-4.5,9,9);g.fillStyle="#3a4a55";g.fillText(s.name,lx+13,ly);
+   lx+=13+g.measureText(s.name).width+16})}
+ function yaxis(min,max){
+  var tk=vticks(min,max,4);
+  g.strokeStyle="#e6ecf1";g.lineWidth=1;
+  tk.forEach(function(v){var y=P.y+P.h-(v-min)/(max-min)*P.h;
+   g.beginPath();g.moveTo(P.x,y);g.lineTo(P.x+P.w,y);g.stroke();
+   g.fillStyle="#52636f";g.textAlign="right";g.fillText(vfmt(v),P.x-4,y);g.textAlign="left"});
+  g.strokeStyle="#c6d2dc";g.beginPath();g.moveTo(P.x,P.y+P.h);g.lineTo(P.x+P.w,P.y+P.h);g.stroke();
+  return function(v){return P.y+P.h-(v-min)/(max-min)*P.h}}
+ function xaxisv(min,max){
+  var tk=vticks(min,max,4);
+  g.strokeStyle="#e6ecf1";g.lineWidth=1;
+  tk.forEach(function(v){var x=P.x+(v-min)/(max-min)*P.w;
+   g.beginPath();g.moveTo(x,P.y);g.lineTo(x,P.y+P.h);g.stroke()});
+  g.strokeStyle="#c6d2dc";g.beginPath();g.moveTo(P.x,P.y);g.lineTo(P.x,P.y+P.h);g.stroke();
+  return function(v){return P.x+(v-min)/(max-min)*P.w}}
+ function xlabels(pitch,center,rotOut){
+  g.fillStyle="#52636f";g.textAlign="center";
+  labs.forEach(function(l,i){var x=center?P.x+(i+0.5)*pitch:P.x+i*pitch;
+   if(rotOut){g.save();g.translate(x,P.y+P.h+7);g.rotate(-Math.PI/4);g.textAlign="right";g.fillText(String(l),0,0);g.restore()}
+   else g.fillText(String(l),x,P.y+P.h+12)});
+  g.textAlign="left"}
+
+ if(type==="donut"){
+  var sl=sp.slices||[],tot=0;sl.forEach(function(s){tot+=s.value});
+  var cx=P.x+P.w*0.24,cy=P.y+P.h/2,R=Math.min(P.w*0.42,P.h)/2*0.92,r2=R*0.6,start=-Math.PI/2;
+  sl.forEach(function(s){var a=s.value/tot*Math.PI*2;
+   g.beginPath();g.moveTo(cx,cy);g.arc(cx,cy,R,start,start+a);g.closePath();
+   g.fillStyle=s.color||pick(PAL);g.fill();g.strokeStyle="#fff";g.lineWidth=2;g.stroke();start+=a});
+  g.beginPath();g.arc(cx,cy,r2,0,Math.PI*2);g.fillStyle="#fff";g.fill();
+  g.fillStyle="#14212b";g.textAlign="center";g.font='600 15px Newsreader,Georgia,serif';
+  g.fillText(sp.center!=null?vfmt(sp.center):vfmt(tot),cx,cy-7);
+  g.font='10px "Public Sans",sans-serif';g.fillStyle="#52636f";
+  g.fillText(sp.centerUnit||"total",cx,cy+10);g.textAlign="left";g.font='11px "Public Sans",system-ui,sans-serif';
+  var dlx=P.x+P.w*0.48,dly=P.y+10,dh=Math.min(17,(P.h-4)/sl.length),dw=P.x+P.w-dlx-8;
+  sl.forEach(function(s){g.fillStyle=s.color||PAL[0];g.fillRect(dlx,dly-4,9,9);g.fillStyle="#3a4a55";
+   g.fillText(vclip(g,s.name+" · "+vfmt(s.value)+" ("+(100*s.value/tot).toFixed(1)+"%)",dw),dlx+13,dly+0.5);dly+=dh});
+  return}
+
+ if(type==="vbar"){
+  var vals=series[0].values||[],n=vals.length;
+  var mx=Math.max.apply(null,vals.concat([0])),mn=Math.min.apply(null,vals.concat([0]));
+  if(sp.yMax!=null)mx=sp.yMax;if(sp.yMin!=null)mn=sp.yMin;
+  if(mx===mn)mx=mn+1;if(mx>0&&sp.yMax==null)mx*=1.06;
+  var sc=yaxis(mn,mx),slot=P.w/n,bw=Math.min(slot*0.72,46),col=series[0].color||PAL[0],y0=sc(0);
+  vals.forEach(function(v,i){var x=P.x+i*slot+(slot-bw)/2,y=sc(v);
+   g.fillStyle=col;g.fillRect(x,Math.min(y,y0),bw,Math.max(1,Math.abs(y-y0)));
+   if(n<=16){g.fillStyle="#3a4a55";g.textAlign="center";g.fillText(vfmt(v),x+bw/2,v>=0?y-8:y+8);g.textAlign="left"}});
+  xlabels(slot,true,rot);return}
+
+ if(type==="hbar"||type==="lollipop"){
+  var vals=series[0].values||[],n=vals.length;
+  var mx=Math.max.apply(null,vals.concat([1])),mn=Math.min(0,Math.min.apply(null,vals.concat([0])));
+  if(sp.yMin!=null)mn=sp.yMin;if(sp.yMax!=null)mx=sp.yMax;
+  var sc=xaxisv(mn,mx),slot=P.h/n,col=series[0].color||PAL[0],bh=Math.min(slot*0.66,22);
+  vals.forEach(function(v,i){var y=P.y+i*slot+slot/2,x0=sc(mn),x1=sc(v);
+   if(type==="lollipop"){g.strokeStyle=col;g.globalAlpha=.35;g.lineWidth=2;
+    g.beginPath();g.moveTo(x0,y);g.lineTo(x1,y);g.stroke();g.globalAlpha=1;
+    g.fillStyle=col;g.beginPath();g.arc(x1,y,4,0,Math.PI*2);g.fill()}
+   else{g.fillStyle=col;g.fillRect(Math.min(x0,x1),y-bh/2,Math.max(1,Math.abs(x1-x0)),bh)}
+   g.fillStyle="#3a4a55";g.fillText(vfmt(v),Math.max(x0,x1)+7,y);
+   g.fillStyle="#33424e";g.textAlign="right";g.fillText(vclip(g,labs[i],P.x-8),P.x-8,y);g.textAlign="left"});
+  return}
+
+ if(type==="grouped"||type==="stacked"){
+  var n=labs.length,k=series.length,sc;
+  if(type==="grouped"){var mx=-Infinity,mn=Infinity;
+   series.forEach(function(s){(s.values||[]).forEach(function(v){if(v>mx)mx=v;if(v<mn)mn=v})});
+   if(sp.yMax!=null)mx=sp.yMax;if(sp.yMin!=null)mn=sp.yMin;
+   if(mn>0)mn=0;if(mx===mn)mx=mn+1;if(mx>0&&sp.yMax==null)mx*=1.06;
+   sc=yaxis(mn,mx);
+   var slot=P.w/n,bw=Math.min(slot*0.8/k,26),y0=sc(0);
+   series.forEach(function(s,si){var col=s.color||PAL[si%PAL.length];
+    (s.values||[]).forEach(function(v,i){var x=P.x+i*slot+(slot-bw*k)/2+si*bw,y=sc(v);
+     g.fillStyle=col;g.fillRect(x,Math.min(y,y0),bw,Math.max(1,Math.abs(y-y0)));
+     if(k<=2&&n<=9&&si===0){g.fillStyle="#3a4a55";g.textAlign="center";g.fillText(vfmt(v),x+bw/2,y-8);g.textAlign="left"}})})}
+  else{var sums=[];for(var i=0;i<n;i++){var t=0;series.forEach(function(s){t+=s.values[i]||0});sums.push(t)}
+   var mx=Math.max.apply(null,sums.concat([1]));if(sp.yMax!=null)mx=sp.yMax;
+   sc=yaxis(0,mx*1.05);
+   var slot=P.w/n,bw=Math.min(slot*0.6,40);
+   series.forEach(function(s,si){var col=s.color||PAL[si%PAL.length],base=0;
+    (s.values||[]).forEach(function(v,i){var y0=sc(base),y1=sc(base+v),x=P.x+i*slot+(slot-bw)/2;
+     g.fillStyle=col;g.fillRect(x,y1,bw,Math.max(1,y0-y1));base+=v})})}
+  xlabels(P.w/n,true,rot);return}
+
+ if(type==="line"){
+  var n=labs.length,xv=sp.xvals||[],xl=!!sp.xlog,yl=!!sp.ylog;
+  var xs=xv.length?xv:labs.map(function(_,i){return i});
+  var X0=Math.min.apply(null,xs),X1=Math.max.apply(null,xs);
+  if(X1===X0)X1=X0+1;
+  var Y0=Infinity,Y1=-Infinity;
+  series.forEach(function(s){(s.values||[]).forEach(function(v){if(v<Y0)Y0=v;if(v>Y1)Y1=v})});
+  if(Y1===Y0)Y1=Y0+1;
+  var mx2,my2,lx0,lx1,ly0,ly1;
+  if(xl){X0=Math.max(X0,1e-9);lx0=Math.log10(X0);lx1=Math.log10(Math.max(X1,X0*10));
+   mx2=function(v){return P.x+(Math.log10(Math.max(v,1e-9))-lx0)/(lx1-lx0)*P.w}}
+  else{var px=(X1-X0)*0.03;X0-=px;X1+=px;mx2=function(v){return P.x+(v-X0)/(X1-X0)*P.w}}
+  if(yl){Y0=Math.max(Y0,1e-9);ly0=Math.log10(Y0);ly1=Math.log10(Math.max(Y1,Y0*10));
+   my2=function(v){return P.y+P.h-(Math.log10(Math.max(v,1e-9))-ly0)/(ly1-ly0)*P.h}}
+  else{var y0b=sp.yMin!=null?sp.yMin:Math.min(0,Y0),y1b=sp.yMax!=null?sp.yMax:Y1;if(y1b===y0b)y1b=y0b+1;
+   if(sp.yMax==null)y1b+=(y1b-y0b)*0.06;if(sp.yMin==null&&y0b<0)y0b-=(y1b-y0b)*0.02;
+   var scL=yaxis(y0b,y1b);my2=scL}
+  g.strokeStyle="#e6ecf1";g.lineWidth=1;
+  (xl?vlogticks(X0,Math.min(X1,1e300)):(sp.xMin!=null||sp.xMax!=null)?vticks(sp.xMin!=null?sp.xMin:X0,sp.xMax!=null?sp.xMax:X1,4):vticks(X0,X1,4)).forEach(function(v){if(v<X0||v>X1)return;var x=mx2(v);
+   g.beginPath();g.moveTo(x,P.y);g.lineTo(x,P.y+P.h);g.stroke();
+   g.fillStyle="#52636f";g.textAlign="center";g.fillText(vfmt(v),x,P.y+P.h+12);g.textAlign="left"});
+  series.forEach(function(s,si){var col=s.color||PAL[si%PAL.length];
+   g.strokeStyle=col;g.lineWidth=2;g.beginPath();
+   (s.values||[]).forEach(function(v,i){var X=mx2(xs[i]),Y=my2(v);i?g.lineTo(X,Y):g.moveTo(X,Y)});
+   g.stroke();
+   if((s.values||[]).length<=40){g.fillStyle=col;
+    (s.values||[]).forEach(function(v,i){g.beginPath();g.arc(mx2(xs[i]),my2(v),2.4,0,Math.PI*2);g.fill()})}});
+  return}
+
+ if(type==="scatter"){
+  var pts=[];series.forEach(function(s){(s.points||[]).forEach(function(p){pts.push(p)})});
+  if(!pts.length)return;
+  var X0=Infinity,X1=-Infinity,Y0=Infinity,Y1=-Infinity;
+  pts.forEach(function(p){if(p[0]<X0)X0=p[0];if(p[0]>X1)X1=p[0];if(p[1]<Y0)Y0=p[1];if(p[1]>Y1)Y1=p[1]});
+  var xl=!!sp.xlog,yl=!!sp.ylog;
+  if(xl){X0=Math.max(X0,1e-9);if(X1<=X0)X1=X0*10}else{var px=(X1-X0)*0.04||1;X0-=px;X1+=px}
+  if(yl){Y0=Math.max(Y0,1e-9);if(Y1<=Y0)Y1=Y0*10}else{var py=(Y1-Y0)*0.06||1;Y0-=py;Y1+=py}
+  function mx2(v){return xl?P.x+(Math.log10(Math.max(v,1e-9))-Math.log10(X0))/(Math.log10(X1)-Math.log10(X0))*P.w:P.x+(v-X0)/(X1-X0)*P.w}
+  function my2(v){return yl?P.y+P.h-(Math.log10(Math.max(v,1e-9))-Math.log10(Y0))/(Math.log10(Y1)-Math.log10(Y0))*P.h:P.y+P.h-(v-Y0)/(Y1-Y0)*P.h}
+  g.strokeStyle="#e6ecf1";g.lineWidth=1;
+  (xl?vlogticks(X0,X1):vticks(X0,X1,4)).forEach(function(v){var x=mx2(v);
+   g.beginPath();g.moveTo(x,P.y);g.lineTo(x,P.y+P.h);g.stroke();
+   g.fillStyle="#52636f";g.textAlign="center";g.fillText(vfmt(v),x,P.y+P.h+12);g.textAlign="left"});
+  (yl?vlogticks(Y0,Y1):vticks(Y0,Y1,4)).forEach(function(v){var y=my2(v);
+   g.beginPath();g.moveTo(P.x,y);g.lineTo(P.x+P.w,y);g.stroke();
+   g.fillStyle="#52636f";g.textAlign="right";g.fillText(vfmt(v),P.x-4,y);g.textAlign="left"});
+  if(sp.diag){var a=Math.max(X0,Y0),b=Math.min(X1,Y1);g.strokeStyle="#b9c6d1";g.setLineDash([4,4]);
+   g.beginPath();g.moveTo(mx2(a),my2(a));g.lineTo(mx2(b),my2(b));g.stroke();g.setLineDash([])}
+  series.forEach(function(s,si){var col=s.color||PAL[si%PAL.length];g.fillStyle=col;g.globalAlpha=.75;
+   (s.points||[]).forEach(function(p){g.beginPath();g.arc(mx2(p[0]),my2(p[1]),p[2]||2.6,0,Math.PI*2);g.fill()});
+   g.globalAlpha=1});
+  return}
+
+ if(type==="heatmap"){
+  var rows=sp.rows||[],cols=sp.cols||[],mat=sp.matrix||[];
+  var mn=Infinity,mx=-Infinity;
+  mat.forEach(function(r){r.forEach(function(v){if(v<mn)mn=v;if(v>mx)mx=v})});
+  var cw=P.w/cols.length,ch=P.h/rows.length,col=sp.color||PAL[0];
+  mat.forEach(function(row,ri){row.forEach(function(v,ci){var t=mx>mn?(v-mn)/(mx-mn):0.5;
+   g.fillStyle=vmix("#eef4f6",col,0.12+0.88*t);g.fillRect(P.x+ci*cw+0.5,P.y+ri*ch+0.5,cw-1,ch-1)})});
+  g.fillStyle="#33424e";g.textAlign="right";
+  rows.forEach(function(r,ri){g.fillText(r,P.x-6,P.y+ri*ch+ch/2)});
+  g.textAlign="center";g.font='10px "Public Sans",sans-serif';
+  cols.forEach(function(c,ci){g.fillText(c,P.x+ci*cw+cw/2,P.y+P.h+10)});
+  g.textAlign="left";g.font='11px "Public Sans",system-ui,sans-serif';
+  return}
+
+ if(type==="range"){
+  var n=labs.length,mn=Math.min.apply(null,sp.mins),mx=Math.max.apply(null,sp.maxs);
+  var pad=(mx-mn)*0.08||1;mn-=pad;mx+=pad;
+  var sc=yaxis(mn,mx),slot=P.w/n,col=sp.color||PAL[0];
+  for(var i=0;i<n;i++){var x=P.x+i*slot+slot/2,y1=sc(sp.mins[i]),y2=sc(sp.maxs[i]);
+   g.strokeStyle="#5b7c8d";g.lineWidth=2;g.beginPath();g.moveTo(x,y1);g.lineTo(x,y2);g.stroke();
+   g.beginPath();g.moveTo(x-5,y1);g.lineTo(x+5,y1);g.moveTo(x-5,y2);g.lineTo(x+5,y2);g.stroke();
+   g.fillStyle=col;g.beginPath();g.arc(x,sc(sp.means[i]),4,0,Math.PI*2);g.fill()}
+  xlabels(slot,true,rot);return}
+}
+var vizDone=false,vizTimer;
+function vizRender(){
+ var host=document.getElementById("vizgrid");if(!host)return;
+ if(!vizDone){vizDone=true;var V=window.VIZ;
+  if(!V||!V.charts){host.innerHTML="<p>viz-data.js was not found next to index.html. Run python3 scripts/build_visualizations.py.</p>";return}
+  var c=document.getElementById("vizcount");if(c)c.textContent=V.charts.length+" charts";
+  host.innerHTML=V.charts.map(function(ch,i){return'<div class="vcard'+(ch.chart.wide?" wide":"")+'"><h3>'+(i+1)+". "+esc(ch.title)+'</h3><p class="src">'+esc(ch.note)+'</p><canvas id="vz'+i+'" role="img" aria-label="'+esc(ch.title)+'"></canvas></div>'}).join("")}
+ vizDrawAll()}
+function vizDrawAll(){var V=window.VIZ;if(!V||!V.charts)return;
+ V.charts.forEach(function(ch,i){var cv=document.getElementById("vz"+i);if(cv)drawChart(cv,ch.chart)})}
+addEventListener("resize",function(){clearTimeout(vizTimer);vizTimer=setTimeout(function(){if(vizDone)vizDrawAll()},160)});
 /* glossary */
 var GL={g1:[["Protein sequence","The chain of amino acids that makes up a protein, written as letters."],["Domain","A part of a protein that folds and works as a unit. One protein can have several."],["Family","A group of proteins that share a common origin and usually a similar job."],["Functional site","A short stretch that does something specific, such as binding a metal or being modified by a cell."],["Signature or model","A pattern or statistical description of what a domain, family or site looks like. Scanning means checking a protein against many of these."],["HMM (hidden Markov model)","A statistical model of a protein family that scores how well a new sequence fits it. Most InterPro member databases use them."],["PROSITE pattern","A short, exact-style motif such as a letter pattern with allowed alternatives. The miniature scanner on this site uses six of these."],["Proteome","All the proteins of one organism."],["UniProt and Swiss-Prot","UniProt is the main protein database. Swiss-Prot is its hand-checked part."]],g2:[["InterPro","A database that combines the predictions of many partner databases into one view of what a protein is and does."],["Member database","One of the partner databases whose models InterPro uses, for example Pfam, CDD or PANTHER."],["InterPro entry","A single record, such as one family or domain, that groups matching signatures from several member databases."],["InterProScan","The program that scans your sequences against those models and reports the matches."],["Nextflow","A workflow tool that runs the steps of InterProScan 6 and can spread them over many processors."],["Container (Docker, Singularity, Apptainer)","A packaged copy of the software and everything it needs, so it behaves the same on any computer."],["FASTA","A plain text format for sequences: a name line starting with a greater-than sign, then the letters."],["TSV","Tab-separated values: a table in plain text, one match per row."],["Match lookup (Matches API)","A service that returns stored results for sequences InterPro has already analysed, found by checksum, so they need not be analysed again."]],g3:[["Coverage","The share of your proteins that got at least one annotation."],["Agreement (Jaccard)","Shared matches divided by all matches found by either side. 100% means identical."],["Precision","Of the matches one version reports, the share the reference also reports."],["Sensitivity","Of the matches the reference reports, the share the other version also finds."],["F1 score","A single number combining precision and sensitivity. 1.0 is perfect."],["Wall time","How long a run took on the clock, start to finish."],["Peak memory","The most RAM used at any one moment."],["Reproducibility","Getting the same result again from the same inputs and settings."],["Fingerprint","A short code made from an output file after removing the date and sorting the rows. Equal fingerprints mean equal annotations."],["Median","The middle value when runs are put in order. The paper reports the median of five runs."]]};
 Object.keys(GL).forEach(function(k){$(k).innerHTML=GL[k].map(function(e){return'<dt style="font-weight:600;margin-top:12px">'+e[0]+'</dt><dd style="margin:2px 0 0;max-width:68ch">'+e[1]+'</dd>'}).join("")});
@@ -287,5 +536,6 @@ $("rfile").onchange=function(e){var f=e.target.files[0];if(!f)return;var r=new F
  rows=rows.filter(function(r,i){return Object.keys(r).some(function(k){return r[k]})||i>=rows.length-added});
  sv("ips6det",det);sv("ips6rows",rows);rdraw()};r.readAsText(f);e.target.value=""};
 rdraw();
+route();
 })();
 </script></body></html>
