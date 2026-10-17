@@ -1,0 +1,5 @@
+provider,mode,cost_usd
+AWS,single instance,10.14
+Google Cloud,single instance,8.13
+AWS,hybrid (Batch, spot),12.43
+Google Cloud,hybrid (Batch, spot),11.53

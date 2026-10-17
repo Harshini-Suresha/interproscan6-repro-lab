@@ -1,0 +1,3 @@
+dataset,n_sampled,uniprot_derived_pairs,interpro_api_pairs,shared,agreement_pct
+coli,100,381,382,381,99.7
+mtb,100,294,294,293,99.3

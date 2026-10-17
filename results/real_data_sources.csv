@@ -1,0 +1,3 @@
+dataset,species,uniprot_proteome,sequences,uniprot_release,uniprot_release_date,interpro_release,fasta,source
+coli,Escherichia coli,UP000000625,4403,2026_03,02-September-2026,110.0,data/coli_UP000000625.fasta,UniProt REST + InterPro
+mtb,Mycobacterium tuberculosis,UP000001584,3997,2026_03,02-September-2026,110.0,data/mtb_UP000001584.fasta,UniProt REST + InterPro

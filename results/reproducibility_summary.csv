@@ -1,0 +1,3 @@
+dataset,runs,distinct_fingerprints,reproducible
+coli,12,1,true
+mtb,12,1,true

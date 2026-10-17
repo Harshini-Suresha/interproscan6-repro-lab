@@ -1,0 +1,33 @@
+# InterProScan 6 reproduction lab
+
+Open `site/index.html` in a browser for the website.
+
+## What this contains
+- **Real data (this run):** Real proteomes and real UniProt/InterPro cross-references. Sequences come from UniProt for *E. coli* (UP000000625) and *M. tuberculosis* (UP000001584). Annotations are UniProt's InterPro member-database cross-references (Pfam, PROSITE, SMART, SUPERFAMILY, PRINTS, PIRSF, CATH-Gene3D, CDD, HAMAP, NCBIfam, PANTHER, SFLD) reformatted to a 15-column InterProScan-like TSV. Source/versions are recorded in `results/real_data_sources.csv`. Cross-source agreement with the InterPro API (sampled proteins) is in `results/reference_agreement.csv`.
+- **Published paper results:** `results/paper_*.csv` are the published figures from Blum et al. 2026 (Bioinformatics Advances 6(1):vbag141, doi:10.1093/bioadv/vbag141, CC BY 4.0), transcribed by hand: runtimes for nine proteomes, concordance with InterProScan 5, and cloud costs. Their reduction and speedup columns were computed here.
+- **Reproducibility and benchmarking:** `results/benchmark_runs.csv` shows timing/peak heap and fingerprint across four configurations (3 repeats) for both real proteomes. `results/reproducibility_summary.csv` shows identical fingerprints under all configurations. `results/matches_by_signature.csv` shows signature frequencies for member databases (excluding the InterPro rollup).
+- **Miniature browser scanner:** `site/index.html` includes a tiny six-PROSITE-pattern scanner (written from memory) for quick comparisons in the browser. It does not run InterProScan and is not meant to represent InterProScan's accuracy; the **real** data above are the UniProt annotations.
+
+## Quick start
+1. `python3 scripts/fetch_real_data.py` — fetches the two real proteomes and their UniProt annotations (uses InterPro XML from the current release to enrich names; releases recorded in `results/real_data_sources.csv`).
+2. `python3 scripts/real_benchmark.py` — measures reproducibility/fingerprints, tracks timing/peak heap, and runs a small cross-source agreement check against the InterPro API.
+3. `python3 scripts/compare.py annotations/coli_UP000000625_annotations.tsv annotations/mtb_UP000001584_annotations.tsv 4403` — example coverage/agreement computation on (protein,signature).
+4. `bash scripts/fingerprint.sh annotations/coli_UP000000625_annotations.tsv` — canonical fingerprint (drops the date column and sorts).
+
+## Running the real InterProScan 6 pipeline (optional)
+The full Nextflow/Docker pipeline is not runnable here. If you have it:
+1. `bash scripts/bench.sh NAME` (timing wrapper) or `python3 scripts/run_matrix.py ...` with `scripts/configs.example.txt`.
+2. Put your TSV outputs in `runs/` and import CSVs into the site's "Your results" page.
+
+## Folders
+- `data/` — real FASTA files for the two proteomes (current UniProt release).
+- `annotations/` — real UniProt/InterPro cross-references in InterProScan-style TSV.
+- `results/` — real summaries, cross-source agreement, benchmarks, and the published paper CSVs.
+- `scripts/` — fetch/benchmark/compare/fingerprint helpers and pipeline wrappers.
+- `site/` — static website.
+
+## Methodology
+- Use a fixed FASTA (proteome) and record UniProt and InterPro releases.
+- Compare coverage and agreement on (protein, accession).
+- Check reproducibility by canonical fingerprint: remove the date column (col 11), sort rows, sha256. Identical hashes = identical annotations.
+- When changing settings, change one variable at a time and log time/memory/hardware.

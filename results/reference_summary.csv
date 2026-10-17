@@ -1,0 +1,3 @@
+dataset,species,uniprot_proteome,n_proteins,proteins_with_match,coverage_pct,proteins_with_interpro,interpro_coverage_pct,total_matches,distinct_signatures,distinct_interpro_entries,annotation_file
+coli,Escherichia coli,UP000000625,4403,4275,97.09,4251,96.55,55038,20034,8057,annotations/coli_UP000000625_annotations.tsv
+mtb,Mycobacterium tuberculosis,UP000001584,3997,3669,91.79,3634,90.92,40850,12336,5384,annotations/mtb_UP000001584_annotations.tsv

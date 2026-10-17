@@ -1,0 +1,2 @@
+docker|-profile docker
+sing|-profile singularity
