@@ -82,12 +82,27 @@ main.wide{max-width:1280px}
 </table></div>
 <p class="sub" style="font-size:.95rem">The full nine-proteome table is on the <a href="#/paper" style="color:var(--a)">Paper data</a> page and in <code>results/paper_table1_runtimes.csv</code>; the reduction and speed-up columns were computed here from the reported times.</p>
 
+<h2>The paper this reproduces</h2>
+<p class="note"><b>Blum M, Hobbs E, Florentino L, Bateman A.</b> <i>InterProScan 6: a modern large-scale protein function annotation pipeline.</i> Bioinformatics Advances 2026; 6(1): vbag141. <a href="https://doi.org/10.1093/bioadv/vbag141" style="color:var(--a)">doi:10.1093/bioadv/vbag141</a>. Open access under CC BY 4.0. European Molecular Biology Laboratory, European Bioinformatics Institute (EMBL-EBI), Hinxton, Cambridge, UK.</p>
+<p>The paper introduces InterProScan 6, a Nextflow reimplementation of the InterProScan pipeline, and reports:</p>
+<ul>
+<li>a runtime benchmark against InterProScan 5.77-108.0 across nine UniProt reference proteomes, on eight CPU cores, as the median of five runs (Table 1 — charted on the <a href="#/paper" style="color:var(--a)">Paper data</a> page and the <a href="#/visualisations" style="color:var(--a)">Visualisations</a> page),</li>
+<li>agreement between the two versions on all 573,661 Swiss-Prot sequences, for every member database, with matches counted as the same when they overlap reciprocally by at least 80% (Table 2),</li>
+<li>cloud costs and hybrid spot-instance runs for the human proteome, finishing in under two hours (Section 3.2), and</li>
+<li>a match lookup that answers sequences already known to UniParc from their checksum in minutes instead of hours.</li>
+</ul>
+<p>Everything quoted from the paper is transcribed, not re-run here, and is machine-readable in <code>results/paper_*.csv</code>.</p>
+
 <h2>Data and sources</h2>
 <ul>
 <li>Sequences: UniProt reference proteomes <a href="https://www.uniprot.org/proteomes/UP000000625" style="color:var(--a)">UP000000625</a> (<i>E. coli</i>) and <a href="https://www.uniprot.org/proteomes/UP000001584" style="color:var(--a)">UP000001584</a> (<i>M. tuberculosis</i>), release 2026_03.</li>
 <li>Annotations: UniProt member-database cross-references enriched with InterPro 110.0 (<code>annotations/*.tsv</code>); cross-checked against the InterPro API (<code>results/reference_agreement.csv</code>).</li>
-<li>Published results: Blum M, Hobbs E, Florentino L, Bateman A. <i>InterProScan 6: a modern large-scale protein function annotation pipeline.</i> Bioinformatics Advances 2026; 6(1): vbag141, <a href="https://doi.org/10.1093/bioadv/vbag141" style="color:var(--a)">doi:10.1093/bioadv/vbag141</a> (CC BY 4.0) — transcribed, not re-run here.</li>
+<li>Benchmarks: local reproduce runs recorded in <code>results/benchmark_runs.csv</code> (four configurations × three repeats per proteome), plus the published paper tables above.</li>
 </ul>
+
+<h2>How reproducibility is checked</h2>
+<p>Every run's output is normalised (the date column is dropped), sorted and hashed, so two runs count as identical only if every annotation matches. Twelve runs per proteome — four chunk sizes and input orders, three repeats each — produced a single fingerprint each, and the same fingerprint across configurations.</p>
+<pre>cut -f1-10,12-15 runs/baseline/proteins.faa.tsv | sort | sha256sum</pre>
 
 <h2>Run it yourself</h2>
 <pre>python3 scripts/fetch_real_data.py        # download the proteomes and annotations
@@ -95,9 +110,6 @@ python3 scripts/real_benchmark.py         # fingerprints, timing and the API agr
 python3 scripts/build_visualizations.py   # regenerate the chart data (site/viz-data.js)
 python3 -m http.server -d site            # then open http://localhost:8000</pre>
 <p>The full Nextflow pipeline needs tens of gigabytes of member-database data and a container engine; the commands to run it (and the configuration matrix) are on the <a href="#/pipeline" style="color:var(--a)">Real pipeline</a> page.</p>
-
-<h2>Contact</h2>
-<p>Questions, corrections or feedback: <a href="mailto:harshinisuresha7@gmail.com" style="color:var(--a)">harshinisuresha7@gmail.com</a></p>
 </section>
 
 <section data-p="/annotate" hidden>
