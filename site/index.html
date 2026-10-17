@@ -50,6 +50,52 @@ main.wide{max-width:1280px}
 <h1>Reproducing InterProScan 6</h1>
 <p class="sub">InterProScan 6 annotates protein sequences with domains, families and functional sites by combining many member-database methods in one Nextflow workflow. This site rebuilds a small, honest slice of that job in your browser and gives you the commands to run the real pipeline.</p>
 <div class="grid"><div><b>Annotate</b><span>Scan proteins for sequence motifs and get TSV output.</span></div><div><b>Compare</b><span>Measure coverage and agreement between two annotation files.</span></div><div><b>Benchmark</b><span>Time the scanner and check that every configuration gives identical output.</span></div><div><b>Real pipeline</b><span>Commands, timing wrapper and the configuration matrix.</span></div></div>
+
+<h2>At a glance</h2>
+<div class="stats">
+<div class="stat"><strong>8,400</strong><span>real proteins annotated — E. coli 4,403 and M. tuberculosis 3,997 from UniProt</span></div>
+<div class="stat"><strong>95,888</strong><span>real UniProt/InterPro matches across the two proteomes</span></div>
+<div class="stat"><strong>97.1%</strong><span>of E. coli proteins carry at least one annotation (M. tuberculosis 91.8%)</span></div>
+<div class="stat"><strong>107</strong><span>charts on the Visualisations page, all drawn from the real files</span></div>
+<div class="stat"><strong>12 → 1</strong><span>benchmark runs per proteome gave a single output fingerprint</span></div>
+<div class="stat"><strong>99.7% / 99.3%</strong><span>agreement with the InterPro API (100 sampled proteins per proteome)</span></div>
+</div>
+
+<h2>Where to go</h2>
+<ul>
+<li><b><a href="#/visualisations" style="color:var(--a)">Visualisations</a></b> — 107 charts of the real annotations, benchmarks and paper tables: coverage, top domains, signature frequencies, runtime, memory and reproducibility.</li>
+<li><b><a href="#/annotate" style="color:var(--a)">Annotate</a></b> — paste a FASTA and scan it in the browser with a miniature six-pattern scanner; useful for seeing what a domain hit looks like before you run the real thing.</li>
+<li><b><a href="#/compare" style="color:var(--a)">Compare</a></b> — load any two InterProScan-style TSVs (including the real files in <code>annotations/</code>) and get agreement and coverage, with the differing rows listed.</li>
+<li><b><a href="#/benchmark" style="color:var(--a)">Benchmark</a></b> — run the scanner under five configurations, time it, and check that every configuration produces byte-identical sorted output.</li>
+<li><b><a href="#/paper" style="color:var(--a)">Paper data</a></b> — the published InterProScan 6 results (Blum et al. 2026): runtime for nine proteomes, agreement with InterProScan 5, cloud costs.</li>
+<li><b><a href="#/pipeline" style="color:var(--a)">Real pipeline</a></b> — the exact Nextflow commands, a timing wrapper and a configuration matrix for reproducing the benchmark on your own hardware.</li>
+<li><b><a href="#/methodology" style="color:var(--a)">Methodology</a></b> — the measurements in plain words: coverage, agreement, wall time, peak memory and how reproducibility is checked with fingerprints.</li>
+<li><b><a href="#/results" style="color:var(--a)">Your results</a></b> — a table to log your own runs (time, memory, coverage, fingerprints) and export them as CSV, with a comparison against the paper's numbers.</li>
+</ul>
+
+<h2>Headline numbers from the paper</h2>
+<div class="wrap"><table>
+<tr><th>Proteome</th><th>InterProScan 5</th><th>InterProScan 6</th><th>Time saved</th><th>With match lookup</th></tr>
+<tr><td><i>E. coli</i> (4,402 sequences)</td><td>1 h 29 min</td><td>0 h 39 min</td><td>56% (2.3×)</td><td>2 min</td></tr>
+<tr><td><i>M. tuberculosis</i> (3,996 sequences)</td><td>1 h 39 min</td><td>0 h 44 min</td><td>56% (2.3×)</td><td>2 min</td></tr>
+<tr><td><i>H. sapiens</i> (20,659 sequences)</td><td>12 h 13 min</td><td>6 h 42 min</td><td>45% (1.8×)</td><td>14 min</td></tr>
+</table></div>
+<p class="sub" style="font-size:.95rem">The full nine-proteome table is on the <a href="#/paper" style="color:var(--a)">Paper data</a> page and in <code>results/paper_table1_runtimes.csv</code>; the reduction and speed-up columns were computed here from the reported times.</p>
+
+<h2>Data and sources</h2>
+<ul>
+<li>Sequences: UniProt reference proteomes <a href="https://www.uniprot.org/proteomes/UP000000625" style="color:var(--a)">UP000000625</a> (<i>E. coli</i>) and <a href="https://www.uniprot.org/proteomes/UP000001584" style="color:var(--a)">UP000001584</a> (<i>M. tuberculosis</i>), release 2026_03.</li>
+<li>Annotations: UniProt member-database cross-references enriched with InterPro 110.0 (<code>annotations/*.tsv</code>); cross-checked against the InterPro API (<code>results/reference_agreement.csv</code>).</li>
+<li>Published results: Blum M, Hobbs E, Florentino L, Bateman A. <i>InterProScan 6: a modern large-scale protein function annotation pipeline.</i> Bioinformatics Advances 2026; 6(1): vbag141, <a href="https://doi.org/10.1093/bioadv/vbag141" style="color:var(--a)">doi:10.1093/bioadv/vbag141</a> (CC BY 4.0) — transcribed, not re-run here.</li>
+</ul>
+
+<h2>Run it yourself</h2>
+<pre>python3 scripts/fetch_real_data.py        # download the proteomes and annotations
+python3 scripts/real_benchmark.py         # fingerprints, timing and the API agreement check
+python3 scripts/build_visualizations.py   # regenerate the chart data (site/viz-data.js)
+python3 -m http.server -d site            # then open http://localhost:8000</pre>
+<p>The full Nextflow pipeline needs tens of gigabytes of member-database data and a container engine; the commands to run it (and the configuration matrix) are on the <a href="#/pipeline" style="color:var(--a)">Real pipeline</a> page.</p>
+
 <h2>Contact</h2>
 <p>Questions, corrections or feedback: <a href="mailto:harshinisuresha7@gmail.com" style="color:var(--a)">harshinisuresha7@gmail.com</a></p>
 </section>
