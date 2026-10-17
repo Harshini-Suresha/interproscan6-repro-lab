@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>InterProScan 6 reproduction lab</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&family=Public+Sans:wght@400;600&display=swap">
+<style>
+:root{--bg:#fcd9e6;--ink:#14212b;--mute:#52636f;--line:#e8c3d2;--panel:#fff;--a:#0b6e6e;--b:#b4541a;--c:#3b4fa0;--code:#f8d9e5;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}*{box-sizing:border-box}
+body{margin:0;background:#fcd9e6 !important;color:var(--ink);font:400 16px/1.6 "Public Sans",system-ui,sans-serif}
+nav{display:flex;gap:4px;flex-wrap:wrap;padding:10px 16px;border-bottom:1px solid var(--line);background:var(--panel);position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
+nav b{font:600 1.15rem Newsreader,Georgia,serif;margin-right:14px;align-self:center}
+nav a{color:var(--ink);text-decoration:none;padding:6px 12px;border-radius:6px}
+nav a[aria-current=page]{background:var(--a);color:var(--bg)}
+nav a:focus-visible,button:focus-visible,select:focus-visible,textarea:focus-visible,input:focus-visible{outline:3px solid var(--c);outline-offset:2px}
+main{max-width:940px;margin:0 auto;padding:36px 20px 80px}
+section[hidden]{display:none}
+h1,h2{font-family:Newsreader,Georgia,serif;font-weight:600;line-height:1.15;margin:0 0 12px}
+h1{font-size:clamp(2.1rem,6vw,3.4rem);letter-spacing:-.02em}h2{font-size:1.6rem;margin-top:40px}
+p,li{max-width:68ch}.sub{color:var(--mute);font-size:1.1rem}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));border:1px solid var(--line);border-radius:6px;background:var(--panel);margin:16px 0}
+.grid div{padding:16px;border-right:1px solid var(--line)}.grid div:last-child{border-right:0}.grid b{display:block}.grid span{color:var(--mute);font-size:.93rem}
+pre{background:var(--code);border:1px solid var(--line);border-radius:6px;padding:14px;overflow-x:auto;font:13px/1.55 ui-monospace,Menlo,Consolas,monospace}
+table{border-collapse:collapse;width:100%;background:var(--panel);font-size:.9rem}td,th{border:1px solid var(--line);padding:7px 10px;text-align:left}th{background:var(--code)}
+.wrap{overflow-x:auto}
+textarea{width:100%;min-height:150px;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:10px;font:12px/1.5 ui-monospace,Menlo,Consolas,monospace}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}@media(max-width:700px){.two{grid-template-columns:1fr}.grid div{border-right:0;border-bottom:1px solid var(--line)}}
+label{font-weight:600;font-size:.9rem;display:block;margin-bottom:4px}
+select,input[type=number]{background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:8px;width:130px}
+button{background:var(--a);color:var(--bg);border:0;border-radius:6px;padding:10px 18px;font:600 15px "Public Sans",sans-serif;cursor:pointer}button.ghost{background:transparent;color:var(--a);border:1px solid var(--a)}button:disabled{opacity:.5}
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:end;margin:14px 0}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:16px 0}.stat{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:12px}
+.stat strong{font:600 1.6rem Newsreader,Georgia,serif;display:block}.stat span{color:var(--mute);font-size:.85rem}
+.note{border-left:4px solid var(--b);padding:6px 14px;background:var(--panel);max-width:68ch}
+.ok{color:var(--a);font-weight:600}.bad{color:var(--b);font-weight:600}
+</style></head><body>
+<nav aria-label="Main"><b>InterProScan 6 lab</b><a href="#/">Overview</a><a href="#/annotate">Annotate</a><a href="#/compare">Compare</a><a href="#/paper">Paper data</a><a href="#/methodology">Methodology</a><a href="#/benchmark">Benchmark</a><a href="#/pipeline">Real pipeline</a><a href="#/results">Your results</a><a href="#/glossary">Glossary</a></nav>
+<main>
+
+<section data-p="/">
+<h1>Reproducing InterProScan 6</h1>
+<p class="sub">InterProScan 6 annotates protein sequences with domains, families and functional sites by combining many member-database methods in one Nextflow workflow. This site rebuilds a small, honest slice of that job in your browser and gives you the commands to run the real pipeline.</p>
+<div class="grid"><div><b>Annotate</b><span>Scan proteins for sequence motifs and get TSV output.</span></div><div><b>Compare</b><span>Measure coverage and agreement between two annotation files.</span></div><div><b>Benchmark</b><span>Time the scanner and check that every configuration gives identical output.</span></div><div><b>Real pipeline</b><span>Commands, timing wrapper and the configuration matrix.</span></div></div>
+<h2>What is and is not implemented</h2>
+<p class="note">The browser scanner is a miniature, not InterProScan. It uses six PROSITE-style patterns (written from memory, so verify them against PROSITE) and has no HMMs, no InterPro entries and no database integration. The real InterProScan 6 needs tens of gigabytes of member-database data and cannot run in a web page. Results on the Annotate and Benchmark pages describe this miniature only, and the demo proteins are synthetic.</p>
+<p>The four goals from the project brief map to the site: reproduce annotation (Annotate, Real pipeline), compare with reference records (Compare), measure runtime, memory and coverage (Benchmark), and test reproducibility across configurations (Benchmark, Real pipeline).</p>
+</section>
+
+<section data-p="/annotate" hidden>
+<h1>Annotate</h1>
+<p>Paste a protein FASTA or generate a synthetic set with planted motifs, then scan.</p>
+<div class="row"><div><label for="gn">Proteins</label><input id="gn" type="number" value="200" min="1" max="20000"></div><div><label for="gs">Seed</label><input id="gs" type="number" value="1"></div><button class="ghost" id="gen">Generate synthetic set</button></div>
+<label for="fa">FASTA</label><textarea id="fa" spellcheck="false" placeholder=">protein_1&#10;MKT..."></textarea>
+<div class="row"><button id="scan">Scan</button><button class="ghost" id="send" disabled>Send to Compare as file A</button><button class="ghost" id="dl" disabled>Download TSV</button></div>
+<div id="aout" aria-live="polite"></div><div class="wrap" id="atab"></div>
+</section>
+
+<section data-p="/compare" hidden>
+<h1>Compare</h1>
+<p>Paste or load two TSV files (this site’s output or real InterProScan output). Matching uses column 1 (protein) plus the signature in column 5 or the InterPro entry in column 12. Nothing is uploaded.</p>
+<div class="row"><div><label for="mode">Compare on</label><select id="mode"><option value="4">Signature (col 5)</option><option value="11">InterPro entry (col 12)</option></select></div><div><label for="n">Input proteins</label><input id="n" type="number" min="1" placeholder="optional"></div></div>
+<div class="two"><div><label for="A">File A</label><textarea id="A" spellcheck="false"></textarea><input type="file" id="fA" aria-label="Load file A"></div><div><label for="B">File B</label><textarea id="B" spellcheck="false"></textarea><input type="file" id="fB" aria-label="Load file B"></div></div>
+<div class="row"><button id="go">Compare</button></div>
+<div id="cout" aria-live="polite"></div><div class="wrap" id="cdiff"></div>
+<p class="sub">Agreement is the Jaccard overlap of (protein, accession) pairs. Coverage is the share of input proteins with at least one annotation.</p>
+</section>
+
+<section data-p="/benchmark" hidden>
+<h1>Benchmark</h1>
+<p>Runs the same scan under five configurations that change chunk size and input order, then checks whether the sorted output is byte-identical. Time is wall-clock in this browser; memory uses the heap counter where the browser exposes one (Chromium).</p>
+<div class="row"><div><label for="bn">Proteins</label><input id="bn" type="number" value="2000" min="10" max="20000"></div><div><label for="bs">Seed</label><input id="bs" type="number" value="1"></div><button id="bgo">Run benchmark</button></div>
+<div id="bout" aria-live="polite"></div><div class="wrap" id="btab"></div>
+</section>
+
+<section data-p="/pipeline" hidden>
+<h1>Real pipeline</h1>
+<p>Confirm flag names and database setup in the <a href="https://github.com/ebi-pf-team/interproscan6" style="color:var(--a)">official repository</a>. The commands below follow its README for version 6.0.1. You need Nextflow 25.10.4 or later and a container engine; the data files download by themselves into <code>--datadir</code> on the first run. Pin both the pipeline version and the InterPro release.</p>
+<h2>First, the built-in test</h2>
+<pre>nextflow run ebi-pf-team/interproscan6 -r 6.0.1 -profile docker,test --datadir data --interpro 108.0</pre>
+<h2>Then your own proteins</h2>
+<pre>nextflow run ebi-pf-team/interproscan6 \
+  -r 6.0.1 \
+  -profile docker \
+  --input data/proteins.faa \
+  --datadir data \
+  --interpro 108.0</pre>
+<p>Results are written to the working directory, named after the input (for example <code>proteins.faa.tsv</code>, plus JSON, XML and GFF3 files). Check that 108.0 is still available; the paper used it.</p>
+<h2>Timing wrapper</h2>
+<pre>#!/usr/bin/env bash
+name=$1; shift; mkdir -p runs/$name; cd runs/$name
+/usr/bin/time -v -o time.txt \
+  nextflow run ebi-pf-team/interproscan6 -r 6.0.1 -profile docker \
+  --input ../../data/proteins.faa --datadir ../../data --interpro 108.0 "$@"
+grep -E "Elapsed|Maximum resident" time.txt</pre>
+<h2>Configuration matrix</h2>
+<div class="wrap"><table><tr><th>Axis</th><th>Values</th><th>A difference means</th></tr>
+<tr><td>Container engine</td><td>Docker, Singularity or Apptainer</td><td>Packaging changes results</td></tr>
+<tr><td>CPU count</td><td>1, 4, 8</td><td>Scheduling affects output</td></tr>
+<tr><td>Repeat run</td><td>Same config three times</td><td>Non-determinism</td></tr>
+<tr><td>Pipeline version</td><td>Two tagged releases</td><td>Drift between releases</td></tr>
+<tr><td>Database release</td><td>Two InterPro versions</td><td>Expected change, report separately</td></tr></table></div>
+<p>Load each run’s TSV into the Compare page to get agreement and coverage. Start with 50 to 200 proteins.</p>
+</section>
+<section data-p="/methodology" hidden>
+<h1>Methodology in plain words</h1>
+<h2>The question</h2>
+<p>InterProScan 6 reads a protein’s amino-acid sequence and says what it probably does, by finding known domains, families and functional sites in it. This project asks four simple things. Can we run it ourselves and get sensible annotations? Do those annotations match trusted reference records? How much time and memory does it need? And does it give the same answer every time, however we set it up?</p>
+<h2>What you need</h2>
+<ul><li>A small set of protein sequences in FASTA format, 50 to 200 to start. Note where they came from: <b>[dataset name and source]</b>.</li>
+<li>Reference records for the same proteins, such as the UniProt or InterPro entries for each one: <b>[reference source and download date]</b>.</li>
+<li>The pipeline version <b>[version]</b> and the database release <b>[release]</b>, written down before you start.</li>
+<li>A computer: <b>[CPU model, cores, RAM, operating system]</b>. A CPU is enough, but the database download is big, so check free disk space first.</li></ul>
+<h2>Steps</h2>
+<ol><li>Pick the proteins and save them as one FASTA file. Do not change it afterwards.</li>
+<li>Install Nextflow and a container engine, then download the pipeline databases as the official instructions describe.</li>
+<li>Run the pipeline’s own test first, to prove the setup works before using your data.</li>
+<li>Run your FASTA once as the baseline, wrapped in the timing script so time and memory are recorded.</li>
+<li>Compare the baseline output with the reference records on the Compare page, and note coverage and agreement.</li>
+<li>Repeat the run changing one thing at a time: the container engine, the number of CPUs, then a second run with identical settings. Record time and memory each time.</li>
+<li>Check whether the outputs are identical (see below), and log everything on the Your results page.</li></ol>
+<h2>What we measure, and how</h2>
+<div class="wrap"><table><tr><th>Measure</th><th>In simple words</th><th>How to get it</th></tr>
+<tr><td>Coverage</td><td>Out of all the proteins, how many got at least one annotation</td><td>Proteins with a hit divided by proteins given</td></tr>
+<tr><td>Agreement</td><td>How much our result overlaps with the reference or another run</td><td>Compare page: shared pairs divided by all pairs seen in either file</td></tr>
+<tr><td>Wall time</td><td>How long the run took, start to finish</td><td>“Elapsed” line from GNU time</td></tr>
+<tr><td>Peak memory</td><td>The most RAM used at any moment</td><td>“Maximum resident set size” from GNU time</td></tr>
+<tr><td>Reproducibility</td><td>Same inputs and settings give the same answer</td><td>Compare a fingerprint of each output (below)</td></tr></table></div>
+<h2>Checking reproducibility</h2>
+<p>Two outputs can be the same in substance but differ in row order or in the date column. So remove the date, sort the rows, then make a fingerprint. Identical fingerprints mean identical annotations. Check your file’s columns first, since the date is normally column 11.</p>
+<pre>cut -f1-10,12-15 runs/baseline/proteins.faa.tsv | sort | sha256sum</pre>
+<p>Do this for every run and paste the first characters of each fingerprint into the results table. If two runs with the same inputs give different fingerprints, use the Compare page to see exactly which matches differ.</p>
+<h2>Reading the results fairly</h2>
+<ul><li>Agreement with a reference tells you how similar the two are, not which one is right. The reference can be incomplete or older.</li>
+<li>Changing the database release will change results for good reasons. Report that apart from reproducibility problems.</li>
+<li>Time depends on the machine, so always state the hardware.</li>
+<li>A small protein set gives rough numbers. Say how many proteins you used.</li>
+<li>The browser Annotate and Benchmark pages are a miniature with six patterns. Do not report their numbers as InterProScan results.</li></ul>
+</section>
+
+<section data-p="/paper" hidden>
+<h1>Real data from the paper</h1>
+<p>These are the published results of InterProScan 6, copied from Blum M, Hobbs E, Florentino L, Bateman A. <i>InterProScan 6: a modern large-scale protein function annotation pipeline.</i> Bioinformatics Advances 2026; 6(1): vbag141. <a href="https://doi.org/10.1093/bioadv/vbag141" style="color:var(--a)">doi:10.1093/bioadv/vbag141</a> (open access, CC BY 4.0). I did not run anything to get them.</p>
+<h2>How the paper measured it</h2>
+<ul><li>Nine UniProt reference proteomes (release 2025_04, one protein sequence per gene).</li>
+<li>InterProScan 5.77-108.0 against InterProScan 6.0.0 run through Nextflow with Singularity, both using InterPro release 108.0.</li>
+<li>EMBL-EBI Slurm cluster, 8 CPU cores per task (Intel Xeon Gold 6252), 90 GB memory requested per job.</li>
+<li>Median of five runs. Times are full pipeline runs and exclude one-time data downloads. Run-to-run spread (MAD/median) was under 6%.</li></ul>
+<h2>Runtime, Table 1</h2>
+<div class="wrap"><table><tr><th>Proteome</th><th>Sequences</th><th>IPS 5</th><th>IPS 6</th><th>IPS 6 + match lookup</th><th>IPS 6 time saved*</th><th style="min-width:160px">IPS 5 (orange) vs IPS 6 (teal)</th></tr><tr><td><i>A. thaliana</i><br><small>UP000006548</small></td><td>27,448</td><td>9 h 29 min</td><td>6 h 10 min</td><td>5 min</td><td>35% (1.5x)</td><td><span style="display:block;height:9px;border-radius:2px;background:var(--b);width:77.6%;margin:2px 0"></span><span style="display:block;height:9px;border-radius:2px;background:var(--a);width:50.5%;margin:2px 0"></span></td></tr><tr><td><i>C. elegans</i><br><small>UP000001940</small></td><td>19,824</td><td>5 h 30 min</td><td>3 h 49 min</td><td>6 min</td><td>31% (1.4x)</td><td><span style="display:block;height:9px;border-radius:2px;background:var(--b);width:45.0%;margin:2px 0"></span><span style="display:block;height:9px;border-radius:2px;background:var(--a);width:31.2%;margin:2px 0"></span></td></tr><tr><td><i>D. melanogaster</i><br><small>UP000000803</small></td><td>13,822</td><td>5 h 59 min</td><td>4 h 14 min</td><td>6 min</td><td>29% (1.4x)</td><td><span style="display:block;height:9px;border-radius:2px;background:var(--b);width:49.0%;margin:2px 0"></span><span style="display:block;height:9px;border-radius:2px;background:var(--a);width:34.7%;margin:2px 0"></span></td></tr><tr><td><i>E. coli</i><br><small>UP000000625</small></td><td>4,402</td><td>1 h 29 min</td><td>0 h 39 min</td><td>2 min</td><td>56% (2.3x)</td><td><span style="display:block;height:9px;border-radius:2px;background:var(--b);width:12.1%;margin:2px 0"></span><span style="display:block;height:9px;border-radius:2px;background:var(--a);width:5.3%;margin:2px 0"></span></td></tr><tr><td><i>H. sapiens</i><br><small>UP000005640</small></td><td>20,659</td><td>12 h 13 min</td><td>6 h 42 min</td><td>14 min</td><td>45% (1.8x)</td><td><span style="display:block;height:9px;border-radius:2px;background:var(--b);width:100.0%;margin:2px 0"></span><span style="display:block;height:9px;border-radius:2px;background:var(--a);width:54.8%;margin:2px 0"></span></td></tr><tr><td><i>M. musculus</i><br><small>UP000000589</small></td><td>21,803</td><td>11 h 33 min</td><td>6 h 41 min</td><td>13 min</td><td>42% (1.7x)</td><td><span style="display:block;height:9px;border-radius:2px;background:var(--b);width:94.5%;margin:2px 0"></span><span style="display:block;height:9px;border-radius:2px;background:var(--a);width:54.7%;margin:2px 0"></span></td></tr><tr><td><i>M. tuberculosis</i><br><small>UP000001584</small></td><td>3,996</td><td>1 h 39 min</td><td>0 h 44 min</td><td>2 min</td><td>56% (2.3x)</td><td><span style="display:block;height:9px;border-radius:2px;background:var(--b);width:13.5%;margin:2px 0"></span><span style="display:block;height:9px;border-radius:2px;background:var(--a);width:6.0%;margin:2px 0"></span></td></tr><tr><td><i>S. cerevisiae</i><br><small>UP000002311</small></td><td>6,065</td><td>2 h 54 min</td><td>1 h 22 min</td><td>3 min</td><td>53% (2.1x)</td><td><span style="display:block;height:9px;border-radius:2px;background:var(--b);width:23.7%;margin:2px 0"></span><span style="display:block;height:9px;border-radius:2px;background:var(--a);width:11.2%;margin:2px 0"></span></td></tr><tr><td><i>Z. mays</i><br><small>UP000007305</small></td><td>39,209</td><td>10 h 51 min</td><td>7 h 28 min</td><td>5 min</td><td>31% (1.5x)</td><td><span style="display:block;height:9px;border-radius:2px;background:var(--b);width:88.8%;margin:2px 0"></span><span style="display:block;height:9px;border-radius:2px;background:var(--a);width:61.1%;margin:2px 0"></span></td></tr></table></div><p class="sub" style="font-size:.9rem">*Computed here from the reported times, not stated in the paper in this form.</p>
+<p>With the match lookup switched on, sequences already known to UniParc are looked up by checksum instead of being analysed again, which is why those times are minutes.</p>
+<h2>Agreement between versions, Table 2</h2>
+<p>All 573,661 Swiss-Prot sequences (release 2025_04). InterProScan 5 is the reference, and two matches count as the same when they overlap reciprocally by at least 80%.</p>
+<div class="wrap"><table><tr><th>Member database</th><th>Precision</th><th>Sensitivity</th><th>F1</th></tr><tr><td>CDD</td><td>1</td><td>1</td><td>1</td></tr><tr><td>CATH-Gene3D</td><td>0.998</td><td>0.999</td><td>0.998</td></tr><tr><td>HAMAP</td><td>1</td><td>1</td><td>1</td></tr><tr><td>NCBIFAM</td><td>1</td><td>1</td><td>1</td></tr><tr><td>PANTHER</td><td>0.985</td><td>0.999</td><td>0.992</td></tr><tr><td>Pfam</td><td>1</td><td>1</td><td>1</td></tr><tr><td>PIRSF</td><td>0.999</td><td>0.999</td><td>0.999</td></tr><tr><td>PRINTS</td><td>1</td><td>1</td><td>1</td></tr><tr><td>PROSITE Patterns</td><td>0.999</td><td>0.999</td><td>0.999</td></tr><tr><td>PROSITE Profiles</td><td>1</td><td>1</td><td>1</td></tr><tr><td>SFLD</td><td>1</td><td>1</td><td>1</td></tr><tr><td>SMART</td><td>0.999</td><td>0.993</td><td>0.996</td></tr><tr><td>SUPERFAMILY</td><td>1</td><td>1</td><td>1</td></tr></table></div>
+<h2>Cloud cost, Section 3.2</h2>
+<p>Full human proteome. The hybrid runs took under two hours and used spot instances.</p>
+<div class="wrap"><table><tr><th>Provider</th><th>Mode</th><th>Cost, human proteome</th></tr><tr><td>AWS</td><td>single instance</td><td>$10.14</td></tr><tr><td>Google Cloud</td><td>single instance</td><td>$8.13</td></tr><tr><td>AWS</td><td>hybrid (Batch, spot)</td><td>$12.43</td></tr><tr><td>Google Cloud</td><td>hybrid (Batch, spot)</td><td>$11.53</td></tr></table></div>
+<h2>Using this for your reproduction</h2>
+<ul><li>The two smallest proteomes are the realistic ones to repeat: <i>E. coli</i> (UP000000625, 4,402 sequences, 39 min in the paper) and <i>M. tuberculosis</i> (UP000001584, 3,996 sequences, 44 min). Download them from UniProt using the exact IDs above.</li>
+<li>Your hardware will differ, so compare ratios (IPS 6 with and without match lookup) rather than raw minutes, and state your CPU count.</li>
+<li>Use the same InterPro release as the paper (108.0) when checking annotations, so database changes do not confuse the comparison.</li>
+<li>The paper also lists every individual benchmark run in its Supplementary Table 1 (an xlsx file on the journal page), which I could not download.</li></ul>
+<p>Machine-readable copies of these tables are in the zip under <code>results/paper_*.csv</code>.</p>
+</section>
+
+<section data-p="/glossary" hidden>
+<h1>Glossary</h1>
+<p>The terms used on this site, in plain words.</p>
+<h2>The biology</h2>
+<dl id="g1"></dl>
+<h2>The software</h2>
+<dl id="g2"></dl>
+<h2>The measurements</h2>
+<dl id="g3"></dl>
+</section>
+
+<section data-p="/results" hidden>
+<h1>Your results</h1>
+<p>Fill in your real runs here. Entries are saved in this browser only, so export the CSV to keep a copy. The grey text in each box is an example of what goes there.</p>
+<h2>Run details</h2>
+<div class="two" id="det"></div>
+<h2>Runs</h2>
+<div class="wrap"><table id="rt"></table></div>
+<div class="row"><button id="radd" class="ghost">Add a run</button><button id="rcsv">Download CSV</button><button id="rimp" class="ghost">Import CSV</button><input type="file" id="rfile" accept=".csv,text/csv" hidden aria-label="Import CSV file"><button id="rclr" class="ghost">Clear all</button></div>
+<h2>Compare with the paper</h2>
+<p>The paper reports 39 minutes for the <i>E. coli</i> proteome (4,402 sequences) with InterProScan 6 on 8 cores, 89 minutes with InterProScan 5, and 2 minutes with match lookup. Hardware differs, so read this as a ratio.</p>
+<div class="row"><div><label for="pe">Your <i>E. coli</i> wall time (min)</label><input id="pe" type="number" min="0" step="any" placeholder="e.g. 52"></div></div>
+<p id="pr" aria-live="polite"></p>
+<h2>Wall time by run</h2>
+<div id="rchart"><p>Enter wall times above to see the chart.</p></div>
+</section>
+</main>
+<script>
+(function(){
+/* router */
+var secs=[].slice.call(document.querySelectorAll("section")),links=[].slice.call(document.querySelectorAll("nav a"));
+function route(){var p=location.hash.slice(1)||"/";if(!secs.some(function(s){return s.dataset.p===p}))p="/";
+ secs.forEach(function(s){s.hidden=s.dataset.p!==p});
+ links.forEach(function(a){if(a.getAttribute("href")==="#"+p)a.setAttribute("aria-current","page");else a.removeAttribute("aria-current")});window.scrollTo(0,0)}
+addEventListener("hashchange",route);route();
+var $=function(i){return document.getElementById(i)},esc=function(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;")};
+/* patterns: PROSITE syntax -> RegExp */
+var PAT=[["PS00018","EF-hand calcium-binding","D-{W}-[DNS]-{ILVFYW}-[DENSTG]-[DNQGHRK]-{GP}-[LIVMC]-[DENQSTAGC]-x(2)-[DE]-[LIVMFYW]"],
+["PS00028","Zinc finger C2H2","C-x(2,4)-C-x(3)-[LIVMFYWC]-x(8)-H-x(3,5)-H"],
+["PS00017","ATP/GTP-binding P-loop","[AG]-x(4)-G-K-[ST]"],
+["PS00029","Leucine zipper","L-x(6)-L-x(6)-L-x(6)-L"],
+["PS00001","N-glycosylation site","N-{P}-[ST]-{P}"],
+["PS00008","N-myristoylation site","G-{EDRKHPFYW}-x(2)-[STAGCN]-{P}"]];
+function toRe(s){return new RegExp(s.split("-").map(function(t){
+ var m=t.match(/^x\((\d+)(?:,(\d+))?\)$/);if(m)return"."+"{"+m[1]+(m[2]?","+m[2]:"")+"}";
+ if(t==="x")return".";if(t[0]==="{")return"[^"+t.slice(1,-1)+"]";return t}).join(""),"g")}
+PAT.forEach(function(p){p.push(toRe(p[2]))});
+function scanOne(id,seq){var out=[];PAT.forEach(function(p){var re=p[3];re.lastIndex=0;var m;
+ while((m=re.exec(seq))){out.push([id,"-",seq.length,"PROSITE-lite",p[0],p[1],m.index+1,m.index+m[0].length,"-","T","-","-","-","-","-"].join("\t"));re.lastIndex=m.index+1}});return out}
+function parseFasta(t){var r=[],id=null,s=[];t.split(/\r?\n/).forEach(function(l){if(l[0]===">"){if(id)r.push([id,s.join("").toUpperCase()]);id=l.slice(1).trim().split(/\s+/)[0];s=[]}else s.push(l.trim())});if(id)r.push([id,s.join("").toUpperCase()]);return r}
+/* seeded synthetic set with planted motifs */
+function rng(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+var AA="ACDEFGHIKLMNPQRSTVWY",PL=["APSTLGKT","CAACAAALAAAAAAAAHAAAH","LAAAAAALAAAAAALAAAAAAL","DKDGDGKIEAAEL","GKSAGSNGAA"];
+function synth(n,seed){var r=rng(seed),o=[];for(var i=0;i<n;i++){var L=150+Math.floor(r()*450),a=[];for(var k=0;k<L;k++)a.push(AA[Math.floor(r()*20)]);
+ var s=a.join("");PL.forEach(function(m){if(r()<.3){var p=Math.floor(r()*(s.length-m.length));s=s.slice(0,p)+m+s.slice(p+m.length)}});o.push([("SYN"+String(i+1).padStart(5,"0")),s])}return o}
+function toFasta(l){return l.map(function(x){return">"+x[0]+"\n"+x[1]}).join("\n")}
+/* annotate page */
+var last=[];
+$("gen").onclick=function(){$("fa").value=toFasta(synth(+$("gn").value||1,+$("gs").value||1))};
+$("scan").onclick=function(){var P=parseFasta($("fa").value);if(!P.length){$("aout").innerHTML="<p>Add FASTA records or generate a synthetic set first.</p>";return}
+ var t0=performance.now();last=[];P.forEach(function(p){last=last.concat(scanOne(p[0],p[1]))});var ms=performance.now()-t0;
+ var cov=new Set(last.map(function(l){return l.split("\t")[0]})).size;
+ $("aout").innerHTML='<div class="stats"><div class="stat"><strong>'+P.length+'</strong><span>proteins</span></div><div class="stat"><strong>'+last.length+'</strong><span>matches</span></div><div class="stat"><strong>'+(100*cov/P.length).toFixed(1)+'%</strong><span>coverage</span></div><div class="stat"><strong>'+ms.toFixed(0)+' ms</strong><span>scan time</span></div></div>';
+ $("atab").innerHTML="<table><tr><th>Protein</th><th>Length</th><th>Signature</th><th>Description</th><th>Start</th><th>End</th></tr>"+last.slice(0,200).map(function(l){var f=l.split("\t");return"<tr><td>"+esc(f[0])+"</td><td>"+f[2]+"</td><td>"+f[4]+"</td><td>"+f[5]+"</td><td>"+f[6]+"</td><td>"+f[7]+"</td></tr>"}).join("")+"</table>"+(last.length>200?"<p>Showing 200 of "+last.length+" matches. Download the TSV for all.</p>":"");
+ $("send").disabled=$("dl").disabled=!last.length;$("send").dataset.n=P.length};
+$("send").onclick=function(){$("A").value=last.join("\n");$("n").value=$("send").dataset.n;location.hash="#/compare"};
+$("dl").onclick=function(){var u=URL.createObjectURL(new Blob([last.join("\n")],{type:"text/tab-separated-values"})),a=document.createElement("a");a.href=u;a.download="annotations.tsv";a.click()};
+/* compare page */
+function parse(t,c){var s=new Set();t.split(/\r?\n/).forEach(function(l){if(!l.trim()||l[0]==="#")return;var f=l.split("\t");if(f.length<5)return;var v=f[c];if(v&&v!=="-"&&v!=="NULL")s.add(f[0]+"\t"+v)});return s}
+function cov(s){var c=new Set();s.forEach(function(p){c.add(p.split("\t")[0])});return c.size}
+$("go").onclick=function(){var c=+$("mode").value,a=parse($("A").value,c),b=parse($("B").value,c);
+ if(!a.size&&!b.size){$("cout").innerHTML="<p>Add TSV rows to both files, then select Compare.</p>";$("cdiff").innerHTML="";return}
+ var sh=0,oa=[],ob=[];a.forEach(function(p){b.has(p)?sh++:oa.push(p)});b.forEach(function(p){if(!a.has(p))ob.push(p)});
+ var u=sh+oa.length+ob.length,n=+$("n").value||Math.max(cov(a),cov(b));
+ $("cout").innerHTML='<div class="stats"><div class="stat"><strong>'+(u?(100*sh/u).toFixed(1)+"%":"n/a")+'</strong><span>agreement</span></div><div class="stat"><strong>'+(100*cov(a)/n).toFixed(1)+'%</strong><span>coverage A</span></div><div class="stat"><strong>'+(100*cov(b)/n).toFixed(1)+'%</strong><span>coverage B</span></div><div class="stat"><strong>'+oa.length+" / "+ob.length+'</strong><span>only A / only B</span></div></div>';
+ var rows=oa.slice(0,25).map(function(p){return["A only"].concat(p.split("\t"))}).concat(ob.slice(0,25).map(function(p){return["B only"].concat(p.split("\t"))}));
+ $("cdiff").innerHTML=rows.length?"<table><tr><th>Where</th><th>Protein</th><th>Accession</th></tr>"+rows.map(function(r){return"<tr><td>"+r[0]+"</td><td>"+esc(r[1])+"</td><td>"+esc(r[2])+"</td></tr>"}).join("")+"</table>":""};
+[["fA","A"],["fB","B"]].forEach(function(x){$(x[0]).onchange=function(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(){$(x[1]).value=r.result};r.readAsText(f)}});
+/* benchmark page */
+function fnv(s){var h=2166136261;for(var i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return(h>>>0).toString(16)}
+function mem(){return performance.memory?performance.memory.usedJSHeapSize:null}
+var tick=function(){return new Promise(function(r){setTimeout(r,0)})};
+async function cfg(P,chunk,order){var list=P.slice();if(order==="reverse")list.reverse();if(order==="shuffle"){var r=rng(99);for(var i=list.length-1;i>0;i--){var j=Math.floor(r()*(i+1)),t=list[i];list[i]=list[j];list[j]=t}}
+ var m0=mem(),t0=performance.now(),all=[];for(var i=0;i<list.length;i+=chunk){list.slice(i,i+chunk).forEach(function(p){all=all.concat(scanOne(p[0],p[1]))});await tick()}
+ var ms=performance.now()-t0,m1=mem();all.sort();
+ return{ms:ms,mem:m0!==null&&m1!==null?Math.max(0,m1-m0):null,hits:all.length,cov:new Set(all.map(function(l){return l.split("\t")[0]})).size,hash:fnv(all.join("\n"))}}
+$("bgo").onclick=async function(){var b=$("bgo");b.disabled=true;var N=+$("bn").value||10,P=synth(N,+$("bs").value||1);
+ var C=[["Chunk 1000, input order",1000,"in"],["Chunk 100, input order",100,"in"],["Chunk 10, shuffled",10,"shuffle"],["Chunk 500, reversed",500,"reverse"],["Chunk 1000, repeat of first",1000,"in"]],R=[];
+ for(var i=0;i<C.length;i++){$("bout").innerHTML="<p>Running "+(i+1)+" of "+C.length+"…</p>";R.push(await cfg(P,C[i][1],C[i][2]))}
+ var same=R.every(function(r){return r.hash===R[0].hash});
+ $("bout").innerHTML='<p class="'+(same?"ok":"bad")+'">'+(same?"All five configurations produced identical output.":"Outputs differ between configurations.")+"</p>";
+ $("btab").innerHTML="<table><tr><th>Configuration</th><th>Time (ms)</th><th>Heap change (MB)</th><th>Matches</th><th>Coverage</th><th>Output hash</th></tr>"+R.map(function(r,i){return"<tr><td>"+C[i][0]+"</td><td>"+r.ms.toFixed(0)+"</td><td>"+(r.mem===null?"n/a":(r.mem/1048576).toFixed(1))+"</td><td>"+r.hits+"</td><td>"+(100*r.cov/N).toFixed(1)+"%</td><td><code>"+r.hash+"</code></td></tr>"}).join("")+"</table>";b.disabled=false};
+/* glossary */
+var GL={g1:[["Protein sequence","The chain of amino acids that makes up a protein, written as letters."],["Domain","A part of a protein that folds and works as a unit. One protein can have several."],["Family","A group of proteins that share a common origin and usually a similar job."],["Functional site","A short stretch that does something specific, such as binding a metal or being modified by a cell."],["Signature or model","A pattern or statistical description of what a domain, family or site looks like. Scanning means checking a protein against many of these."],["HMM (hidden Markov model)","A statistical model of a protein family that scores how well a new sequence fits it. Most InterPro member databases use them."],["PROSITE pattern","A short, exact-style motif such as a letter pattern with allowed alternatives. The miniature scanner on this site uses six of these."],["Proteome","All the proteins of one organism."],["UniProt and Swiss-Prot","UniProt is the main protein database. Swiss-Prot is its hand-checked part."]],g2:[["InterPro","A database that combines the predictions of many partner databases into one view of what a protein is and does."],["Member database","One of the partner databases whose models InterPro uses, for example Pfam, CDD or PANTHER."],["InterPro entry","A single record, such as one family or domain, that groups matching signatures from several member databases."],["InterProScan","The program that scans your sequences against those models and reports the matches."],["Nextflow","A workflow tool that runs the steps of InterProScan 6 and can spread them over many processors."],["Container (Docker, Singularity, Apptainer)","A packaged copy of the software and everything it needs, so it behaves the same on any computer."],["FASTA","A plain text format for sequences: a name line starting with a greater-than sign, then the letters."],["TSV","Tab-separated values: a table in plain text, one match per row."],["Match lookup (Matches API)","A service that returns stored results for sequences InterPro has already analysed, found by checksum, so they need not be analysed again."]],g3:[["Coverage","The share of your proteins that got at least one annotation."],["Agreement (Jaccard)","Shared matches divided by all matches found by either side. 100% means identical."],["Precision","Of the matches one version reports, the share the reference also reports."],["Sensitivity","Of the matches the reference reports, the share the other version also finds."],["F1 score","A single number combining precision and sensitivity. 1.0 is perfect."],["Wall time","How long a run took on the clock, start to finish."],["Peak memory","The most RAM used at any one moment."],["Reproducibility","Getting the same result again from the same inputs and settings."],["Fingerprint","A short code made from an output file after removing the date and sorting the rows. Equal fingerprints mean equal annotations."],["Median","The middle value when runs are put in order. The paper reports the median of five runs."]]};
+Object.keys(GL).forEach(function(k){$(k).innerHTML=GL[k].map(function(e){return'<dt style="font-weight:600;margin-top:12px">'+e[0]+'</dt><dd style="margin:2px 0 0;max-width:68ch">'+e[1]+'</dd>'}).join("")});
+/* results page */
+function ld(k,d){try{return JSON.parse(localStorage.getItem(k))||d}catch(e){return d}}
+function sv(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+var DET=[["dataset","Dataset and source","e.g. 200 human kinases from UniProt"],["ref","Reference records","e.g. UniProt release and download date"],["pipe","Pipeline version","e.g. 6.0.0"],["db","Database release","e.g. InterPro 107.0"],["hw","Hardware","e.g. 8 cores, 16 GB RAM, Ubuntu"],["who","Name and date","e.g. A. Student, 2026-10-20"]];
+var COL=[["name","Run name","baseline"],["cfg","Configuration","Docker, 4 CPUs"],["n","Input proteins","200"],["min","Wall time (min)","12.5"],["gb","Peak memory (GB)","8.0"],["ann","Proteins annotated","180"],["agr","Agreement with reference (%)","95"],["hash","Output fingerprint","3fa9c1"],["note","Notes",""]];
+var det=ld("ips6det",{}),rows=ld("ips6rows",[{},{},{}]);
+$("det").innerHTML=DET.map(function(d){return'<div><label for="d_'+d[0]+'">'+d[1]+'</label><input id="d_'+d[0]+'" type="text" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink)" placeholder="'+d[2]+'" value="'+esc(det[d[0]]||"").replace(/"/g,"&quot;")+'"></div>'}).join("");
+DET.forEach(function(d){$("d_"+d[0]).oninput=function(e){det[d[0]]=e.target.value;sv("ips6det",det)}});
+function rcalc(i){var r=rows[i],c=$("cv"+i);if(c)c.textContent=(+r.n>0&&r.ann!==undefined&&r.ann!=="")?(100*r.ann/r.n).toFixed(1)+"%":"-"}
+function rchart(){var m=0;rows.forEach(function(r){if(+r.min>m)m=+r.min});
+ $("rchart").innerHTML=m?rows.map(function(r,i){return+r.min>0?'<div style="display:flex;gap:10px;align-items:center;margin:6px 0"><span style="width:150px;font-size:.9rem">'+esc(r.name||"Run "+(i+1))+'</span><span style="background:var(--a);height:18px;border-radius:3px;width:'+(70*r.min/m)+'%"></span><span>'+r.min+' min</span></div>':""}).join(""):"<p>Enter wall times above to see the chart.</p>"}
+function rdraw(){$("rt").innerHTML="<tr>"+COL.map(function(c){return"<th>"+c[1]+"</th>"}).join("")+"<th>Coverage</th><th></th></tr>"+rows.map(function(r,i){return"<tr>"+COL.map(function(c){return'<td><input data-i="'+i+'" data-k="'+c[0]+'" aria-label="'+c[1]+', run '+(i+1)+'" placeholder="'+c[2]+'" value="'+esc(r[c[0]]||"").replace(/"/g,"&quot;")+'" style="width:'+(c[0]==="note"?170:c[0]==="cfg"?140:100)+'px;padding:6px;border:1px solid var(--line);border-radius:4px;background:var(--panel);color:var(--ink)"></td>'}).join("")+'<td id="cv'+i+'">-</td><td><button class="ghost" data-del="'+i+'" aria-label="Delete run '+(i+1)+'">Delete</button></td></tr>'}).join("");
+ rows.forEach(function(_,i){rcalc(i)});rchart()}
+$("rt").addEventListener("input",function(e){var t=e.target;if(t.dataset.k===undefined)return;rows[+t.dataset.i][t.dataset.k]=t.value;sv("ips6rows",rows);rcalc(+t.dataset.i);rchart()});
+$("rt").addEventListener("click",function(e){var d=e.target.dataset.del;if(d===undefined)return;rows.splice(+d,1);sv("ips6rows",rows);rdraw()});
+$("radd").onclick=function(){rows.push({});sv("ips6rows",rows);rdraw()};
+$("rclr").onclick=function(){if(confirm("Clear all runs and run details from this browser?")){rows=[{},{},{}];det={};sv("ips6rows",rows);sv("ips6det",det);DET.forEach(function(d){$("d_"+d[0]).value=""});rdraw()}};
+$("rcsv").onclick=function(){var q=function(s){return'"'+String(s===undefined?"":s).replace(/"/g,'""')+'"'};
+ var t=DET.map(function(d){return"# "+d[1]+": "+(det[d[0]]||"")}).join("\n")+"\n"+COL.map(function(c){return q(c[1])}).join(",")+"\n"+rows.map(function(r){return COL.map(function(c){return q(r[c[0]])}).join(",")}).join("\n");
+ var u=URL.createObjectURL(new Blob([t],{type:"text/csv"})),a=document.createElement("a");a.href=u;a.download="ips6-results.csv";a.click()};
+$("pe").oninput=function(){var v=+$("pe").value;$("pr").textContent=v>0?"Yours is "+(v/39).toFixed(2)+" times the paper’s 39 minutes for InterProScan 6 ("+(v/89).toFixed(2)+" times its InterProScan 5 time of 89 minutes).":""};
+function csvline(l){var o=[],c="",q=false;for(var i=0;i<l.length;i++){var ch=l[i];if(q){if(ch==='"'){if(l[i+1]==='"'){c+='"';i++}else q=false}else c+=ch}else if(ch==='"')q=true;else if(ch===","){o.push(c);c=""}else c+=ch}o.push(c);return o}
+$("rimp").onclick=function(){$("rfile").click()};
+$("rfile").onchange=function(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(){
+ var hd=null,added=0;r.result.split(/\r?\n/).forEach(function(l){if(!l.trim())return;
+  if(l[0]==="#"){DET.forEach(function(d){var p="# "+d[1]+": ";if(l.indexOf(p)===0&&l.length>p.length){det[d[0]]=l.slice(p.length);$("d_"+d[0]).value=det[d[0]]}});return}
+  var f=csvline(l);if(!hd){hd=f;return}
+  var row={};COL.forEach(function(c){var i=hd.indexOf(c[1]);if(i>=0)row[c[0]]=f[i]});rows.push(row);added++});
+ rows=rows.filter(function(r,i){return Object.keys(r).some(function(k){return r[k]})||i>=rows.length-added});
+ sv("ips6det",det);sv("ips6rows",rows);rdraw()};r.readAsText(f);e.target.value=""};
+rdraw();
+})();
+</script></body></html>
