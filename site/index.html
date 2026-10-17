@@ -39,9 +39,10 @@ main.wide{max-width:1280px}
 .vcard h3{font:600 .95rem "Public Sans",system-ui,sans-serif;margin:0 0 3px;letter-spacing:0;line-height:1.3}
 .vcard .src{color:var(--mute);font-size:.74rem;margin:0 0 8px;max-width:none;line-height:1.35}
 .vcard canvas{width:100%;height:200px;display:block}
+.vcard.tall canvas,.vcard.wide.tall canvas{height:460px}
 .vcard.wide canvas{height:240px}
 .vizstats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:16px 0}
-@media(max-width:700px){.vcard.wide{grid-column:span 1}.vcard canvas{height:190px}.vcard.wide canvas{height:210px}}
+@media(max-width:700px){.vcard.wide{grid-column:span 1}.vcard canvas{height:190px}.vcard.tall canvas,.vcard.wide.tall canvas{height:330px}.vcard.wide canvas{height:210px}}
 </style></head><body>
 <nav aria-label="Main"><b>InterProScan 6 lab</b><a href="#/">Overview</a><a href="#/annotate">Annotate</a><a href="#/compare">Compare</a><a href="#/visualisations">Visualisations</a><a href="#/paper">Paper data</a><a href="#/methodology">Methodology</a><a href="#/benchmark">Benchmark</a><a href="#/pipeline">Real pipeline</a><a href="#/results">Your results</a><a href="#/glossary">Glossary</a></nav>
 <main>
@@ -56,7 +57,7 @@ main.wide{max-width:1280px}
 <div class="stat"><strong>8,400</strong><span>real proteins annotated — E. coli 4,403 and M. tuberculosis 3,997 from UniProt</span></div>
 <div class="stat"><strong>95,888</strong><span>real UniProt/InterPro matches across the two proteomes</span></div>
 <div class="stat"><strong>97.1%</strong><span>of E. coli proteins carry at least one annotation (M. tuberculosis 91.8%)</span></div>
-<div class="stat"><strong>107</strong><span>charts on the Visualisations page, all drawn from the real files</span></div>
+<div class="stat"><strong>117</strong><span>charts on the Visualisations page, all drawn from the real files</span></div>
 <div class="stat"><strong>12 → 1</strong><span>benchmark runs per proteome gave a single output fingerprint</span></div>
 <div class="stat"><strong>99.7% / 99.3%</strong><span>agreement with the InterPro API (100 sampled proteins per proteome)</span></div>
 <div class="stat"><strong>32,370</strong><span>distinct member-database signatures in the real annotations</span></div>
@@ -67,7 +68,7 @@ main.wide{max-width:1280px}
 
 <h2>Where to go</h2>
 <ul>
-<li><b><a href="#/visualisations" style="color:var(--a)">Visualisations</a></b> — 107 charts of the real annotations, benchmarks and paper tables: coverage, top domains, signature frequencies, runtime, memory and reproducibility.</li>
+<li><b><a href="#/visualisations" style="color:var(--a)">Visualisations</a></b> — 117 charts of the real annotations, benchmarks and paper tables: coverage, top domains, signature frequencies, runtime, memory, reproducibility, positional amino-acid enrichment, parallel coordinates and entry co-occurrence.</li>
 <li><b><a href="#/annotate" style="color:var(--a)">Annotate</a></b> — paste a FASTA and scan it in the browser with a miniature six-pattern scanner; useful for seeing what a domain hit looks like before you run the real thing.</li>
 <li><b><a href="#/compare" style="color:var(--a)">Compare</a></b> — load any two InterProScan-style TSVs (including the real files in <code>annotations/</code>) and get agreement and coverage, with the differing rows listed.</li>
 <li><b><a href="#/benchmark" style="color:var(--a)">Benchmark</a></b> — run the scanner under five configurations, time it, and check that every configuration produces byte-identical sorted output.</li>
@@ -386,13 +387,17 @@ function vrender(g,W,H,sp){
   (sp.mins||[]).concat(sp.maxs||[]).forEach(function(v){vv.push(v)});
   var mx=0;vv.forEach(function(v){if(Math.abs(v)>mx)mx=Math.abs(v)});
   m.l=Math.max(m.l,Math.ceil(g.measureText(vfmt(mx)).width)+10)}
- if(multi)m.t=22;
+ if(multi){var lw=0,legn=1;
+  series.forEach(function(s){if(!s.name)return;var w=13+g.measureText(s.name).width+16;
+   if(lw>0&&m.l+lw+w>W-m.r){legn++;lw=w}else lw+=w});
+  m.t=22+13*(legn-1)}
  var P={x:m.l,y:m.t,w:W-m.l-m.r,h:H-m.t-m.b};
  if(P.w<40||P.h<40)return;
  if(multi){var lx=P.x,ly=11;
-  series.forEach(function(s,i){if(!s.name)return;var col=s.color||PAL[i%PAL.length];
+  series.forEach(function(s,i){if(!s.name)return;var col=s.color||PAL[i%PAL.length],w=13+g.measureText(s.name).width+16;
+   if(lx>P.x&&lx+w>W-m.r){lx=P.x;ly+=13}
    g.fillStyle=col;g.fillRect(lx,ly-4.5,9,9);g.fillStyle="#3a4a55";g.fillText(s.name,lx+13,ly);
-   lx+=13+g.measureText(s.name).width+16})}
+   lx+=w})}
  function yaxis(min,max){
   var tk=vticks(min,max,4);
   g.strokeStyle="#e6ecf1";g.lineWidth=1;
@@ -560,7 +565,7 @@ function vizRender(){
  if(!vizDone){vizDone=true;var V=window.VIZ;
   if(!V||!V.charts){host.innerHTML="<p>viz-data.js was not found next to index.html. Run python3 scripts/build_visualizations.py.</p>";return}
   var c=document.getElementById("vizcount");if(c)c.textContent=V.charts.length+" charts";
-  host.innerHTML=V.charts.map(function(ch,i){return'<div class="vcard'+(ch.chart.wide?" wide":"")+'"><h3>'+(i+1)+". "+esc(ch.title)+'</h3><p class="src">'+esc(ch.note)+'</p><canvas id="vz'+i+'" role="img" aria-label="'+esc(ch.title)+'"></canvas></div>'}).join("")}
+  host.innerHTML=V.charts.map(function(ch,i){return'<div class="vcard'+(ch.chart.wide?" wide":"")+(ch.chart.tall?" tall":"")+'"><h3>'+(i+1)+". "+esc(ch.title)+'</h3><p class="src">'+esc(ch.note)+'</p><canvas id="vz'+i+'" role="img" aria-label="'+esc(ch.title)+'"></canvas></div>'}).join("")}
  vizDrawAll()}
 function vizDrawAll(){var V=window.VIZ;if(!V||!V.charts)return;
  V.charts.forEach(function(ch,i){var cv=document.getElementById("vz"+i);if(cv)drawChart(cv,ch.chart)})}

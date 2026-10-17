@@ -879,6 +879,130 @@ def build():
         hbar([sid for sid, _ in longest], [len(s) for _, s in longest],
              xUnit="length (aa)", color="#3b4fa0", wide=True))
 
+    # ------------------------------------------------------------------ K.
+    # position-resolved composition of the real sequences: where in the chain
+    # is each residue over- or under-represented relative to the whole proteome
+    NB = 10
+    for org in (coli, mtb):
+        pos = [Counter() for _ in range(NB)]
+        tot_b = [0] * NB
+        for _, s in org["seqs"]:
+            L = len(s)
+            for i, c in enumerate(s):
+                b = min(NB - 1, i * NB // L)
+                pos[b][c] += 1
+                tot_b[b] += 1
+        overall = Counter()
+        overall.update(org["aa"])
+        ov = sum(overall.values())
+        matrix = [[round((pos[b][a] / tot_b[b]) / (overall[a] / ov), 2) if overall[a] else 0
+                   for b in range(NB)] for a in AA20]
+        cols = [f"{i*10}–{i*10+10}%" for i in range(NB)]
+        add(f"{org['meta']['species']}: amino-acid enrichment along the chain",
+            "Positional frequency divided by the proteome-wide frequency, over every real "
+            "residue of every protein; 1.00 = average, darker = enriched.",
+            heatmap(list(AA20), cols, matrix, color=org["meta"]["color"], unit="×", tall=1),
+            wide=True)
+
+    # ------------------------------------------------------------------ L.
+    # slope chart: each of the nine reference proteomes before and after
+    add("Runtime slope: InterProScan 5 to InterProScan 6",
+        f"Wall time of each of the nine reference proteomes before and after; one line "
+        f"per proteome, steeper = larger gain ({src}).",
+        line(labels=["InterProScan 5", "InterProScan 6"],
+             series=[{"name": names[i], "values": [i5[i], i6[i]]} for i in range(len(names))],
+             yUnit="minutes", wide=True))
+
+    # ------------------------------------------------------------------ M.
+    # parallel coordinates: percentile profile of sampled real proteins across
+    # seven bio-physical and annotation axes
+    PC_METRICS = ["length", "MW", "GRAVY", "charged %", "Cys %", "matches", "IPR entries"]
+    for org in (coli, mtb):
+        tag = org["meta"]["species"]
+        idx = {sid: i for i, (sid, _) in enumerate(org["seqs"])}
+        cys = {sid: pct(s.count("C"), len(s)) for sid, s in org["seqs"]}
+
+        def raw(sid, name):
+            if name == "length":
+                return org["lens"][sid]
+            if name == "MW":
+                return org["mw"][idx[sid]]
+            if name == "GRAVY":
+                return org["gravy"][idx[sid]]
+            if name == "charged %":
+                return org["charge"][idx[sid]] * 100
+            if name == "Cys %":
+                return cys[sid]
+            if name == "matches":
+                return org["matches"].get(sid, 0)
+            return len(org["ipr_set"].get(sid, ()))
+
+        all_ids = [sid for sid, _ in org["seqs"]]
+        sv = {m: sorted(raw(sid, m) for sid in all_ids) for m in PC_METRICS}
+
+        def pctl(sid, name):
+            arr = sv[name]
+            return round(100.0 * bisect_left(arr, raw(sid, name)) / (len(arr) - 1), 1)
+
+        cand = [sid for sid in all_ids if org["matches"].get(sid)]
+        sel = cand[::max(1, len(cand) // 8)][:8]
+        add(f"{tag}: protein profiles across seven axes",
+            "Parallel coordinates: eight sampled real proteins; each value is its "
+            "percentile within the proteome. Axes, left to right: " +
+            ", ".join(PC_METRICS) + ".",
+            line(series=[{"name": sid, "values": [pctl(sid, m) for m in PC_METRICS]}
+                         for sid in sel],
+                 yMin=0, yMax=100, yUnit="percentile", wide=True))
+
+    # ------------------------------------------------------------------ N.
+    # quad-encoded bubble scatter: length x matches x InterPro entries, both proteomes
+    add("Length, matches and InterPro breadth at once",
+        "Each bubble is one real protein (sampled): x = length, y = matches, "
+        "bubble size = distinct InterPro entries it carries.",
+        scatter([{"name": org["meta"]["species"],
+                  "points": sample([[org["lens"][sid], org["matches"].get(sid, 0),
+                                     round(2 + 1.1 * min(8, len(org["ipr_set"].get(sid, ()))))]
+                                    for sid, _ in org["seqs"] if org["matches"].get(sid)], 600),
+                  "color": org["meta"]["color"]} for org in (coli, mtb)],
+                xUnit="length (aa)", yUnit="matches"))
+
+    # ------------------------------------------------------------------ O.
+    # entry co-occurrence: which InterPro entries are found together in proteins
+    for org in (coli, mtb):
+        top12 = [e for e, _ in sorted(org["ipr_prot"].items(), key=lambda kv: -len(kv[1]))[:12]]
+        sets = [org["ipr_prot"][e] for e in top12]
+        mat = [[round(len(sets[i] & sets[j]) / len(sets[i] | sets[j]), 2)
+                for j in range(len(top12))] for i in range(len(top12))]
+        add(f"{org['meta']['species']}: InterPro entry co-occurrence",
+            "Jaccard index over proteins: |A∩B| / |A∪B| for the top 12 entries by "
+            "proteins; 1.00 = always seen together, 0 = never.",
+            heatmap(top12, top12, mat, color=org["meta"]["color"], unit="Jaccard"),
+            wide=True)
+
+    # ------------------------------------------------------------------ P.
+    ce, me = set(coli["ipr_match"]), set(mtb["ipr_match"])
+    both = ce & me
+    add("InterPro entries shared between the proteomes",
+        f"{fmt_n(len(ce))} E. coli entries and {fmt_n(len(me))} M. tuberculosis entries; "
+        "overlap = entries hit in both real annotation sets.",
+        donut([{"name": "both proteomes", "value": len(both), "color": "#0b6e6e"},
+               {"name": "E. coli only", "value": len(ce - me), "color": coli["meta"]["color"]},
+               {"name": "M. tuberculosis only", "value": len(me - ce),
+                "color": mtb["meta"]["color"]}],
+              center=fmt_n(len(ce | me)), centerUnit="entries in total"))
+
+    a0 = sum(coli["ipr_match"][e] for e in both)
+    a1 = sum(coli["ipr_match"][e] for e in ce - me)
+    b0 = sum(mtb["ipr_match"][e] for e in both)
+    b1 = sum(mtb["ipr_match"][e] for e in me - ce)
+    add("Matches from shared vs unique InterPro entries",
+        "How much of each proteome's annotation traffic comes from entries the other "
+        "proteome also uses.",
+        stacked(["E. coli", "M. tuberculosis"],
+                [{"name": "entries in both proteomes", "values": [a0, b0], "color": "#0b6e6e"},
+                 {"name": "entries unique to one", "values": [a1, b1], "color": "#b4541a"}],
+                yUnit="matches"))
+
     return charts
 
 
@@ -904,7 +1028,7 @@ def main():
         fh.write(";\n")
     size = os.path.getsize(dest)
     print(f"wrote {dest}: {len(charts)} charts, {size/1024:.0f} KB")
-    assert 95 <= len(charts) <= 112, f"chart count out of range: {len(charts)}"
+    assert 110 <= len(charts) <= 125, f"chart count out of range: {len(charts)}"
 
 
 if __name__ == "__main__":
